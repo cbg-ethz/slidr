@@ -4,7 +4,7 @@ Version: 0.0.0.9000
 Authors@R: person(“Sumana”, “Srivatsa”, email = “sumana.srivatsa@bsse.ethz.ch”, role = c("aut", "cre"))
 Description: The package is built to identify synthetic lethal hits given mutation profile and perturbation screen data.
 Depends: R (>= 3.2.3)
-License: What license is it under?
+License: GPL-3
 Encoding: UTF-8
 LazyData: true
 RoxygenNote: 6.0.1

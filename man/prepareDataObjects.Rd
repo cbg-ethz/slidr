@@ -5,8 +5,8 @@
 \title{Prepare the data object required for downstream analysis}
 \usage{
 prepareDataObjects(data, x, fdr = 0.05, min_Nmut = 2, all_cancers_mut_df,
-  CN_mat, minNrcelllines = 5, cellline_annot, meta_data,
-  essential_genes = NULL)
+  CN_df, gistic = FALSE, CN_Thr = 2, minNrcelllines = 5, celllines,
+  meta_data, essential_genes = NULL)
 }
 \arguments{
 \item{data}{input data frame of cell line viabilities for different gene knockdowns}
@@ -19,11 +19,15 @@ prepareDataObjects(data, x, fdr = 0.05, min_Nmut = 2, all_cancers_mut_df,
 
 \item{all_cancers_mut_df}{MAF file from CCLE}
 
-\item{CN_mat}{copy number matrix from CCLE}
+\item{CN_df}{copy number dataframe from CCLE}
+
+\item{gistic}{Logical variable checking if copy number is based on Gistic. Default = FALSE}
+
+\item{CN_Thr}{threshold for using CN data. Values: 0 = Homozygous and heterozygous deletions ; 1 = Homozygous deletions only; 2 = No copy number used (default)}
 
 \item{minNrcelllines}{lower bound of number of cell lines. Default = 5}
 
-\item{cellline_annot}{cell line annotation data frame}
+\item{celllines}{vector of interested celllines}
 
 \item{meta_data}{information on different sub types for each primary site}
 

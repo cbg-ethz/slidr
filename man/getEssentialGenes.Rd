@@ -4,10 +4,12 @@
 \alias{getEssentialGenes}
 \title{Get a list of essential genes}
 \usage{
-getEssentialGenes(x, data, thresh = -3)
+getEssentialGenes(x, celllines, data, thresh = -3)
 }
 \arguments{
 \item{x}{primary site}
+
+\item{celllines}{subset of interested celllines}
 
 \item{data}{data frame of RSA normalised values}
 
