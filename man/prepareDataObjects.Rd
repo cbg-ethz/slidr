@@ -36,8 +36,9 @@ prepareDataObjects(data, x, fdr = 0.05, min_Nmut = 2, all_cancers_mut_df,
 \value{
 An object for each cancer type
 \describe{
-   \item{viabilities}{matrix of viabilities for each cancer type}
+   \item{viabilities}{dataframe of viabilities for each cancer type}
    \item{mutations}{matrix of mutations in drivers for each cancer type}
+   \item{CNalterations}{matrix of non-negative copy number alterations of drivers for each cancer type}
    \item{mutation_annot}{annotations of the mutations}
    \item{primary_site}{cancer type}
 }
