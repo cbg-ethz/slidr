@@ -7,7 +7,7 @@
 getEssentialGenes(x, celllines, data, thresh = -3)
 }
 \arguments{
-\item{x}{primary site}
+\item{x}{primary site. If `NULL` then ensure that the `celllines` passed match the colnames of data}
 
 \item{celllines}{subset of interested celllines}
 

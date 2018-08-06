@@ -4,16 +4,16 @@
 \alias{prepareCNMat}
 \title{Prepare integer valued copy number matrix}
 \usage{
-prepareCNMat(CN_df, celllines, top_drivers, x)
+prepareCNMat(CN_df, samples, driver_genes, x)
 }
 \arguments{
 \item{CN_df}{log2 transformed copy number matrix}
 
-\item{celllines}{vector of cell lines of interest}
+\item{samples}{vector of cell lines of interest}
 
-\item{top_drivers}{vector of driver or mutated genes of interest}
+\item{driver_genes}{vector of driver or mutated genes of interest}
 
-\item{x}{primary site}
+\item{x}{primary site. If `NULL` then ensure that the `samples` passed match the colnames of data}
 }
 \value{
 Integer valued copy number matrix for selected cell lines and drivers

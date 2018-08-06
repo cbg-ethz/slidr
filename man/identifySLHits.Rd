@@ -8,7 +8,7 @@ in the mutated samples. The function also performs a two sided wilcoxon or t-tes
 on the wild type samples to give a p-value required for filtering.}
 \usage{
 identifySLHits(canc_data, n_cand = 100, qval_thresh = 1, path_results,
-  WT_pval_thresh)
+  WT_pval_thresh = 0.2)
 }
 \arguments{
 \item{canc_data}{Processed data object for a given cancer type}

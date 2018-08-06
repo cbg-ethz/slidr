@@ -4,16 +4,16 @@
 \alias{prepareCNMatGistic}
 \title{Prepare integer valued copy number matrix from Gistic based copy number}
 \usage{
-prepareCNMatGistic(CN_df_gistic, celllines, top_drivers, x)
+prepareCNMatGistic(CN_df_gistic, samples, driver_genes, x)
 }
 \arguments{
 \item{CN_df_gistic}{Copy number in Gistic format}
 
-\item{celllines}{vector of cell lines of interest}
+\item{samples}{vector of cell lines of interest}
 
-\item{top_drivers}{vector of driver or mutated genes of interest}
+\item{driver_genes}{vector of driver or mutated genes of interest}
 
-\item{x}{primary site}
+\item{x}{primary site. If `NULL` then ensure that the `samples` passed match the colnames of data}
 }
 \value{
 Integer valued copy number matrix for selected cell lines and drivers

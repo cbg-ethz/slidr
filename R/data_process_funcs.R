@@ -34,15 +34,18 @@ getCelllines <- function(x, cellline_annot, meta_data){
 #' number matrix (0 = Homozygous deletion; 1 = Heterozygous deletion; 2 = Normal; etc.).
 #'
 #' @param CN_df_gistic Copy number in Gistic format
-#' @param celllines vector of cell lines of interest
-#' @param top_drivers vector of driver or mutated genes of interest
-#' @param x primary site
+#' @param samples vector of cell lines of interest
+#' @param driver_genes vector of driver or mutated genes of interest
+#' @param x primary site. If `NULL` then ensure that the `samples` passed match the colnames of data
 #' @return Integer valued copy number matrix for selected cell lines and drivers
 #' @export
 
-prepareCNMatGistic <- function(CN_df_gistic, celllines, top_drivers, x){
+prepareCNMatGistic <- function(CN_df_gistic, samples, driver_genes, x){
 
-  CCLE_cellline_name     <- toupper(paste(celllines,x, sep = "_"))
+  if(is.null(x)){
+    CCLE_cellline_name  <- toupper(samples)
+  }else
+    CCLE_cellline_name  <- toupper(paste(samples,x, sep = "_"))
   rownames(CN_df_gistic) <-  CN_df_gistic$Hugo_Symbol
   CN_mat_subset <- CN_df_gistic[, -c(1:2)]
 
@@ -51,13 +54,13 @@ prepareCNMatGistic <- function(CN_df_gistic, celllines, top_drivers, x){
   colnames(CN_mat_subset) <- tolower(colnames(CN_mat_subset))
 
   # Integer values for copy numbers 0,1,2 ...
-  CN_subset_int <-  matrix(NA,nrow=length(top_drivers),ncol=length(celllines))
+  CN_subset_int <-  matrix(NA,nrow=length(driver_genes),ncol=length(samples))
   colnames(CN_subset_int) <- tolower(CCLE_cellline_name)
-  rownames(CN_subset_int) <- top_drivers
+  rownames(CN_subset_int) <- driver_genes
 
   # Choosing only top driver genes
-  indexes <-  which(top_drivers %in% rownames(CN_mat_subset))
-  CN_subset_int[indexes, colnames(CN_mat_subset)] <- as.matrix(CN_mat_subset[top_drivers[indexes], ])
+  indexes <-  which(driver_genes %in% rownames(CN_mat_subset))
+  CN_subset_int[indexes, colnames(CN_mat_subset)] <- as.matrix(CN_mat_subset[driver_genes[indexes], ])
 
   return(CN_subset_int)
 }
@@ -68,14 +71,19 @@ prepareCNMatGistic <- function(CN_df_gistic, celllines, top_drivers, x){
 #' The function takes in RSA data and returns a vector of essential genes
 #'
 #' @param data data frame of RSA normalised values
-#' @param x primary site
+#' @param x primary site. If `NULL` then ensure that the `celllines` passed match the colnames of data
 #' @param celllines subset of interested celllines
 #' @param thresh threshold for defining essentiality. Default = -3
 #' @return a vector of essential genes
 #' @export
 
 getEssentialGenes <- function(x, celllines, data, thresh = -3){
-  data_subset <- data[,paste(celllines,x,sep="_")]
+  # Passing cell lines with primary site or appending it
+  if(is.null(x)){
+    data_subset <- data[,celllines]
+  }else{
+    data_subset <- data[,paste(celllines,x,sep="_")]
+  }
 
   # Filling missing data with mean values
   data_subset <- as.data.frame(t(apply(data_subset,
@@ -103,15 +111,18 @@ getEssentialGenes <- function(x, celllines, data, thresh = -3){
 #' number matrix
 #'
 #' @param CN_df log2 transformed copy number matrix
-#' @param celllines vector of cell lines of interest
-#' @param top_drivers vector of driver or mutated genes of interest
-#' @param x primary site
+#' @param samples vector of cell lines of interest
+#' @param driver_genes vector of driver or mutated genes of interest
+#' @param x primary site. If `NULL` then ensure that the `samples` passed match the colnames of data
 #' @return Integer valued copy number matrix for selected cell lines and drivers
 #' @export
 
-prepareCNMat <- function(CN_df, celllines, top_drivers, x){
+prepareCNMat <- function(CN_df, samples, driver_genes, x){
 
-  CCLE_cellline_name <- toupper(paste(celllines,x, sep = "_"))
+  if(is.null(x)){
+    CCLE_cellline_name <- toupper(samples)
+  }else
+    CCLE_cellline_name <- toupper(paste(samples,x, sep = "_"))
 
   # Copy numbers for cell lines of interest
   CN_mat_subset <- CN_df %>% dplyr::select_(.dots = c("SYMBOL",intersect(CCLE_cellline_name, colnames(CN_df)))) #CN_df[,c(2, which(colnames(CN_df) %in% CCLE_cellline_name))]
@@ -122,13 +133,13 @@ prepareCNMat <- function(CN_df, celllines, top_drivers, x){
   CN_mat_subset  <- round(2*2^CN_mat_subset)
 
   # Integer values for copy numbers 0,1,2 ...
-  CN_subset_int <-  matrix(NA,nrow=length(top_drivers),ncol=length(celllines))
+  CN_subset_int <-  matrix(NA,nrow=length(driver_genes),ncol=length(samples))
   colnames(CN_subset_int) <- tolower(CCLE_cellline_name)
-  rownames(CN_subset_int) <- top_drivers
+  rownames(CN_subset_int) <- driver_genes
 
   # Choosing only top driver genes
-  indices <- which(top_drivers %in% rownames(CN_mat_subset))
-  CN_subset_int[indices, colnames(CN_mat_subset)] <- as.matrix(CN_mat_subset[top_drivers[indices], ])
+  indices <- which(driver_genes %in% rownames(CN_mat_subset))
+  CN_subset_int[indices, colnames(CN_mat_subset)] <- as.matrix(CN_mat_subset[driver_genes[indices], ])
 
   return(CN_subset_int)
 }
@@ -138,7 +149,8 @@ prepareCNMat <- function(CN_df, celllines, top_drivers, x){
 #' Function takes in a list of driver genes, samples and mutation/maf file
 #' and returns a binary muration matrix
 #'
-#' @param x primary site
+#' @param x primary site. If `NULL` then ensure that the `samples` passed match the `Tumor_Sample_Barcode`
+#' field in `all_cancers_mut_df`
 #' @param driver_genes vector of interested driver genes
 #' @param samples vector of cell lines or patient samples
 #' @param all_cancers_mut_df dataframe of mutations with Hugo_symbol, Tumor_Sample_Barcode and type of mutation
@@ -151,14 +163,25 @@ prepareMutMat <- function(x, driver_genes, samples, all_cancers_mut_df){
   mut_mat <-  matrix(0,nrow=length(driver_genes),ncol=length(samples))
 
   for(i in 1:length(samples)){
-    temp_mut <- subset(all_cancers_mut_df,
-                       Tumor_Sample_Barcode == toupper(paste(samples[i],x,sep="_")),
-                       Hugo_Symbol)
+    if(is.null(x)){
+      temp_mut <- subset(all_cancers_mut_df,
+                         Tumor_Sample_Barcode == toupper(samples[i]),
+                         Hugo_Symbol)
+    }else{
+      temp_mut <- subset(all_cancers_mut_df,
+                         Tumor_Sample_Barcode == toupper(paste(samples[i],x,sep="_")),
+                         Hugo_Symbol)
+    }
+
     mut_idx  <- which(driver_genes %in% unique(temp_mut$Hugo_Symbol))
     mut_mat[mut_idx,i] <- 1
   }
 
-  colnames(mut_mat) <- paste(samples,x,sep="_")
+  if(is.null(x)){
+    colnames(mut_mat) <- samples
+  }else{
+    colnames(mut_mat) <- paste(samples,x,sep="_")
+  }
   rownames(mut_mat) <- driver_genes
 
   return(mut_mat)

@@ -7,7 +7,8 @@
 prepareMutMat(x, driver_genes, samples, all_cancers_mut_df)
 }
 \arguments{
-\item{x}{primary site}
+\item{x}{primary site. If `NULL` then ensure that the `samples` passed match the `Tumor_Sample_Barcode`
+field in `all_cancers_mut_df`}
 
 \item{driver_genes}{vector of interested driver genes}
 
