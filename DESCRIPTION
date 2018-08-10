@@ -1,6 +1,6 @@
 Package: slidR
 Title: Discovery of mutation-specific synthetic lethal partners from large pan-cancer perturbation screens
-Version: 0.0.0.9000
+Version: 0.1.0
 Authors@R: c(person("Sumana", "Srivatsa", email = "sumana.srivatsa@bsse.ethz.ch", role = c("aut", "cre")),
              person("Hesam", "Montazeri", email = "hesam.montazeri@gmail.com", role = "ctb"))
 Description: The package is built to identify synthetic lethal hits given mutation profile and perturbation screen data.
