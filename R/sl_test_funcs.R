@@ -7,11 +7,16 @@
 #' @export
 
 IH_CDF <- function(x, n) {
-  X <-  floor(x)
-  k <- seq(from = 0, to = X)
-  # compute the cdf which would be the p-value
-  s <-  (-1)^k * choose(n, k)*( (x-k)^n)
-  return(sum(s)/factorial(n))
+  if(n <= 100){
+    X <-  floor(x)
+    k <- seq(from = 0, to = X)
+    # compute the cdf or p-value for n <= 100
+    s <-  (-1)^k * choose(n, k)*( (x-k)^n)
+    return(sum(s)/factorial(n))
+  }else{
+    # approximation for large n
+    return(pnorm(x, n/2,sqrt(n/12), lower.tail = TRUE))
+  }
 }
 
 #' Retrieve list of mutation-specific synthetic lethal partners for each type of cancer
@@ -68,7 +73,7 @@ identifySLHits <- function(canc_data, n_cand = 100, qval_thresh = 1, path_result
                                 lapply(1:n_cand,function(k){
                                   sl_partner_gene <- names(genes_rank_sum[k])
                                   mut_pvalue      <- IH_CDF(genes_rank_sum[k], n) # Performing Irwin Hall test
-                                  mut_qvalue      <- mut_pvalue * nrow(viabilities) * ncol(mutations) # Correcting for multiple testing
+                                  mut_qvalue      <- mut_pvalue * nrow(viabilities) * nrow(mutations) # Correcting for multiple testing
                                   x               <- as.numeric(as.character(viabilities[sl_partner_gene,WT_celllines]))
                                   WT_pvalue       <- min(wilcox.test(x, mu = 0, alternative = "two.sided")$p.value,
                                                        t.test(x, mu = 0, alternative = "two.sided")$p.value) # Testing WT cell lines for sl partner gene
