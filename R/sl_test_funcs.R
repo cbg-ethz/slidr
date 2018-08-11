@@ -95,7 +95,7 @@ identifySLHits <- function(canc_data, n_cand = 100, qval_thresh = 1, path_result
   slidR::plotSLBoxplot(canc_data = canc_data,
                        hits_df = results,
                        path_results = path_results,
-                       WT_pval_thresh = 0.2)
+                       WT_pval_thresh = WT_pval_thresh)
   write.table(results,
               file = paste(output_folder, "SL_hits_", canc_data$primary_site, ".txt", sep = ""),
               quote = F, row.names = F, sep = "\t")
