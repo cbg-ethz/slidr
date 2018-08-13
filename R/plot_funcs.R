@@ -118,7 +118,8 @@ plotSLBoxplot <- function(canc_data, hits_df, path_results, WT_pval_thresh = 0.2
            scale_color_manual(name = "CNA", values=subset_CNA_colors, labels = names(subset_CNA_colors))+
            scale_fill_manual(name="Mutation type",values=subset_colors, labels = gsub("_"," ", names(subset_colors)))
 
-           print(p)
+           # cat(hits_df$driver[j], "\t", hits_df$sl_partner_gene[j], "\n")
+           # print(p)
            ggsave(paste(output_folder, hits_df$driver_gene[j], "_", hits_df$sl_partner_gene[j], ".pdf",sep = ""), p, width = 6, height = 5, limitsize = FALSE)
     }
   }

@@ -25,9 +25,6 @@ IH_CDF <- function(x, n) {
 #' on the wild type samples to give a p-value required for filtering.
 #' @import tidyr
 #' @param canc_data Processed data object for a given cancer type
-#' @param n_cand first 'n' number of SL partners to be tested after ranking. Default = 100
-#' This is just to save on computation time since after multiple testing correction we will be
-#' filtering a lot of them out.
 #' @param qval_thresh The number of false positives allowed after correction. Default = 1
 #' @param path_results The path to where the results should be stored
 #' @param WT_pval_thresh Discard SL pairs with WT p-values less than this threshold. Default = 0.2
@@ -36,7 +33,7 @@ IH_CDF <- function(x, n) {
 #' p-value in mutated samples and the corresponding value after correction.
 #' @export
 
-identifySLHits <- function(canc_data, n_cand = 100, qval_thresh = 1, path_results, WT_pval_thresh = 0.2){
+identifySLHits <- function(canc_data, qval_thresh = 1, path_results, WT_pval_thresh = 0.2){
 
   output_folder = paste(path_results,"Hit_List/", sep = "")
   if(!dir.exists(output_folder)){
@@ -109,7 +106,7 @@ identifySLHits <- function(canc_data, n_cand = 100, qval_thresh = 1, path_result
   results$mut_qvalue      <- as.numeric(as.character(results$mut_qvalue))
   results$driver_gene     <- as.character(results$driver_gene)
   results$sl_partner_gene <- as.character(results$sl_partner_gene)
-  results                 <- results %>% dplyr::filter(mut_qvalue < qval_thresh)
+  # results                 <- results %>% dplyr::filter(mut_qvalue < qval_thresh)
   results                 <- results[order(results$mut_pvalue),]
 
   slidR::plotSLBoxplot(canc_data = canc_data,

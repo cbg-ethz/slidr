@@ -166,6 +166,6 @@ save.image("~/Downloads/Slidr_Results/pancan.Rdata")
 Identify Synthetic lethals from pan cancer data.
 
 ```{r sl_pancancer}
-hits_pancan <- slidR::identifySLHits(canc_data = pc_data, n_cand = 30, path_results = path_results)
+hits_pancan <- slidR::identifySLHits(canc_data = pc_data, path_results = path_results)
 
 ```
