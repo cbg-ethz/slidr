@@ -66,24 +66,44 @@ identifySLHits <- function(canc_data, n_cand = 100, qval_thresh = 1, path_result
 
     # Number of mutated cases and the maximum rank or total number of samples
     n        <- length(mut_celllines)
+    n_tests  <- nrow(viabilities) * nrow(mutations)
     max_rank <- max(all_viabilities_ranks)
 
-    results <- rbind.data.frame(results,
-                                do.call(rbind,
-                                lapply(1:n_cand,function(k){
-                                  sl_partner_gene <- names(genes_rank_sum[k])
-                                  mut_pvalue      <- IH_CDF(genes_rank_sum[k], n) # Performing Irwin Hall test
-                                  mut_qvalue      <- mut_pvalue * nrow(viabilities) * nrow(mutations) # Correcting for multiple testing
-                                  x               <- as.numeric(as.character(viabilities[sl_partner_gene,WT_celllines]))
-                                  WT_pvalue       <- min(wilcox.test(x, mu = 0, alternative = "two.sided")$p.value,
-                                                       t.test(x, mu = 0, alternative = "two.sided")$p.value) # Testing WT cell lines for sl partner gene
-                                  cbind(driver_gene,
-                                      sl_partner_gene,
-                                      WT_pvalue,
-                                      mut_pvalue,
-                                      mut_qvalue)})))
+    k = 1
+    mut_pvalue <- IH_CDF(genes_rank_sum[k], n)
+    while((mut_pvalue * n_tests) < qval_thresh){
+      sl_partner_gene <- names(genes_rank_sum[k])
+      mut_qvalue      <- mut_pvalue * n_tests # Correcting for multiple testing by adjusting FPR
+      WT_viabilities  <- as.numeric(as.character(viabilities[sl_partner_gene,WT_celllines]))
+      WT_pvalue       <- min(wilcox.test(WT_viabilities, mu = 0, alternative = "two.sided")$p.value,
+                             t.test(WT_viabilities, mu = 0, alternative = "two.sided")$p.value) # Testing WT cell lines for sl partner gene
+      results         <- rbind.data.frame(results,
+                                          cbind(driver_gene,
+                                                sl_partner_gene,
+                                                WT_pvalue,
+                                                mut_pvalue,
+                                                mut_qvalue))
+      k               <- k + 1
+      mut_pvalue      <- IH_CDF(genes_rank_sum[k], n) # Performing Irwin Hall test for next gene
+    }
+
+    # results <- rbind.data.frame(results,
+    #                             do.call(rbind,
+    #                             lapply(1:n_cand,function(k){
+    #                               sl_partner_gene <- names(genes_rank_sum[k])
+    #                               mut_pvalue      <- IH_CDF(genes_rank_sum[k], n) # Performing Irwin Hall test
+    #                               mut_qvalue      <- mut_pvalue * n_tests # Correcting for multiple testing
+    #                               x               <- as.numeric(as.character(viabilities[sl_partner_gene,WT_celllines]))
+    #                               WT_pvalue       <- min(wilcox.test(x, mu = 0, alternative = "two.sided")$p.value,
+    #                                                    t.test(x, mu = 0, alternative = "two.sided")$p.value) # Testing WT cell lines for sl partner gene
+    #                               cbind(driver_gene,
+    #                                   sl_partner_gene,
+    #                                   WT_pvalue,
+    #                                   mut_pvalue,
+    #                                   mut_qvalue)})))
   }
 
+  cat("Finished performing all tests successfully!\n")
   results$WT_pvalue       <- as.numeric(as.character(results$WT_pvalue))
   results$mut_pvalue      <- as.numeric(as.character(results$mut_pvalue))
   results$mut_qvalue      <- as.numeric(as.character(results$mut_qvalue))

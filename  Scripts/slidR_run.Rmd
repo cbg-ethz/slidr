@@ -144,16 +144,18 @@ pc_data$mutations   <- pc_data$mutations[rowSums(pc_data$mutations) >= mut_thres
 mut_mat_annot <- melt(pc_data$mutations)
 mut_mat_annot <- mut_mat_annot %>% dplyr::filter(value != 0)
 colnames(mut_mat_annot) <- c("Hugo_Symbol","Cell_Line","Mut_Status")
+# Use copy number info in the mutation annotation file
 all_cancers_mut_df$Tumor_Sample_Barcode <- tolower(all_cancers_mut_df$Tumor_Sample_Barcode)
 CN_alterations_df <- melt(pc_data$CNalterations)
 colnames(CN_alterations_df) <- c("Hugo_Symbol","Cell_Line","CN_Value")
-# IMPORTANT: Computationally expensive!!!!
 
+# Annotating mutations and adding copy number information
 pc_data$mutation_annot <- left_join(mut_mat_annot,all_cancers_mut_df,
                               by = c("Hugo_Symbol" = "Hugo_Symbol","Cell_Line" = "Tumor_Sample_Barcode")) %>%
                           dplyr::select(Hugo_Symbol, Cell_Line, Mut_Status, Variant_Classification) %>%
-                          dplyr::group_by(Hugo_Symbol,Cell_Line) %>% 
-                          dplyr::summarise(Variant_Classification = paste(Variant_Classification, collapse=";"), n = n()) 
+                          dplyr::group_by(Hugo_Symbol,Cell_Line,Mut_Status) %>% 
+                          dplyr::summarise(Variant_Classification = paste(Variant_Classification, collapse=";")) 
+
 pc_data$mutation_annot <- left_join(pc_data$mutation_annot, CN_alterations_df, by = c("Hugo_Symbol","Cell_Line"))
 
 pc_data$mutation_annot[is.na(pc_data$mutation_annot)] <- 0
