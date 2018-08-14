@@ -117,7 +117,8 @@ data_ataris <- as.data.frame(t(apply(data_ataris,
 pc_data$viabilities <- data_ataris[!rownames(data_ataris) %in% pc_essen_gene,pc_celllines]
 
 # Threshold for removing drivers with fewer than 2% mutated samples
-mut_thresh <- floor(2 * length(pc_celllines) / 100)
+mut_pc     <- 8 #2         
+mut_thresh <- floor(mut_pc * length(pc_celllines) / 100)
 CN_Thr     <- 1 # Threshold to choose only deep deletions
 # Binary mutation data
 mut_mat    <- slidR::prepareMutMat(x = NULL, 
@@ -158,6 +159,7 @@ pc_data$mutation_annot <- left_join(mut_mat_annot,all_cancers_mut_df,
 
 pc_data$mutation_annot <- left_join(pc_data$mutation_annot, CN_alterations_df, by = c("Hugo_Symbol","Cell_Line"))
 
+# Replacing all the na
 pc_data$mutation_annot[is.na(pc_data$mutation_annot)] <- 0
 
 save.image("~/Downloads/Slidr_Results/pancan.Rdata")
@@ -166,6 +168,9 @@ save.image("~/Downloads/Slidr_Results/pancan.Rdata")
 Identify Synthetic lethals from pan cancer data.
 
 ```{r sl_pancancer}
-hits_pancan <- slidR::identifySLHits(canc_data = pc_data, path_results = path_results)
+# Path for results
+path_results <- "~/Downloads/Slidr_Results/"
+
+hits_pancan <- slidR::identifySLHits(canc_data = pc_data, path_results = path_results, WT_pval_thresh = 0, qval_thresh = 1)
 
 ```

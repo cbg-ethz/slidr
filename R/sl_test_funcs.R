@@ -68,7 +68,7 @@ identifySLHits <- function(canc_data, qval_thresh = 1, path_results, WT_pval_thr
 
     k = 1
     mut_pvalue <- IH_CDF(genes_rank_sum[k], n)
-    while((mut_pvalue * n_tests) < qval_thresh){
+    while((mut_pvalue * n_tests) < qval_thresh && k <= max_rank){
       sl_partner_gene <- names(genes_rank_sum[k])
       mut_qvalue      <- mut_pvalue * n_tests # Correcting for multiple testing by adjusting FPR
       WT_viabilities  <- as.numeric(as.character(viabilities[sl_partner_gene,WT_celllines]))
@@ -81,23 +81,11 @@ identifySLHits <- function(canc_data, qval_thresh = 1, path_results, WT_pval_thr
                                                 mut_pvalue,
                                                 mut_qvalue))
       k               <- k + 1
-      mut_pvalue      <- IH_CDF(genes_rank_sum[k], n) # Performing Irwin Hall test for next gene
+      if(k <= max_rank){
+        mut_pvalue      <- IH_CDF(genes_rank_sum[k], n) # Performing Irwin Hall test for next gene
+      }
     }
 
-    # results <- rbind.data.frame(results,
-    #                             do.call(rbind,
-    #                             lapply(1:n_cand,function(k){
-    #                               sl_partner_gene <- names(genes_rank_sum[k])
-    #                               mut_pvalue      <- IH_CDF(genes_rank_sum[k], n) # Performing Irwin Hall test
-    #                               mut_qvalue      <- mut_pvalue * n_tests # Correcting for multiple testing
-    #                               x               <- as.numeric(as.character(viabilities[sl_partner_gene,WT_celllines]))
-    #                               WT_pvalue       <- min(wilcox.test(x, mu = 0, alternative = "two.sided")$p.value,
-    #                                                    t.test(x, mu = 0, alternative = "two.sided")$p.value) # Testing WT cell lines for sl partner gene
-    #                               cbind(driver_gene,
-    #                                   sl_partner_gene,
-    #                                   WT_pvalue,
-    #                                   mut_pvalue,
-    #                                   mut_qvalue)})))
   }
 
   cat("Finished performing all tests successfully!\n")
@@ -118,3 +106,44 @@ identifySLHits <- function(canc_data, qval_thresh = 1, path_results, WT_pval_thr
               quote = F, row.names = F, sep = "\t")
   return(results)
 }
+
+
+#' P-value for a given pair of genes
+#' Given the processed data object, a driver gene, and it's prospective partner, the
+#' function returns the p-values for the wild type and mutated samples.
+#' @import tidyr
+#' @param canc_data Processed data object for a given cancer type.
+#' @param driver_gene The target mutated gene.
+#' @param sl_partner_gene  The corresponding SL partner
+#' @return a dataframe of driver gene with its corresponding SL partner, the p-value in WT samples,
+#' p-value in mutated samples.
+#' @export
+
+getPval <- function(canc_data, driver_gene, sl_partner_gene){
+  viabilities <- canc_data$viabilities
+  mutations   <- canc_data$mutations
+
+  WT_celllines  <- colnames(mutations)[which(mutations[driver_gene,] == 0)]
+  mut_celllines <- colnames(mutations)[which(mutations[driver_gene,] == 1)]
+
+  # Ranking the viabilities of all genes in the mutated cell lines
+  all_viabilities_ranks <- apply(viabilities[, mut_celllines], 2, rank)
+  # Normalised rank sum
+  genes_rank_sum        <- sort(apply(all_viabilities_ranks, 1, sum))/nrow(viabilities)
+
+  # Number of mutated cases and the maximum rank or total number of samples
+  n        <- length(mut_celllines)
+  max_rank <- max(all_viabilities_ranks)
+  k        <- which(names(genes_rank_sum) == sl_partner_gene)
+
+  mut_pvalue      <- IH_CDF(genes_rank_sum[k], n)
+  WT_viabilities  <- as.numeric(as.character(viabilities[sl_partner_gene,WT_celllines]))
+  WT_pvalue       <- min(wilcox.test(WT_viabilities, mu = 0, alternative = "two.sided")$p.value,
+                         t.test(WT_viabilities, mu = 0, alternative = "two.sided")$p.value)
+
+  cbind(as.character(driver_gene),
+        as.character(sl_partner_gene),
+        as.numeric(as.character(WT_pvalue)),
+        as.numeric(as.character(mut_pvalue)))
+}
+
