@@ -174,3 +174,83 @@ path_results <- "~/Downloads/Slidr_Results/"
 hits_pancan <- slidR::identifySLHits(canc_data = pc_data, path_results = path_results, WT_pval_thresh = 0, qval_thresh = 1)
 
 ```
+
+Plotting p-values of the SL pairs and identifying partners that are partners for many drivers.
+
+```{r bubble_plot_1}
+hits_pancan <- read.delim("~/Downloads/Slidr_Results/Pan_cancer_8pc/Hit_List/SL_hits_pan_cancer.txt",stringsAsFactors = F)
+hits_pancan$sl_partner_gene <- sapply(hits_pancan$sl_partner_gene, function(x){strsplit(x, ",")[[1]][1]})
+
+p <- ggplot(hits_pancan, aes(x=driver_gene, y=sl_partner_gene, size = -log(mut_pvalue, base = 10))) + 
+      geom_point(fill = "#055C95",color="#055C95", alpha=0.45) + 
+      scale_size_continuous(range=c(2, 10)) +
+      theme_bw() +
+      xlab("Driver genes") +
+      ylab("SL partner genes") +
+      labs(size = "-log(p-value)")+
+      theme(panel.grid.major = element_line(size = 0.1),
+            panel.grid.minor = element_blank(),
+            axis.ticks.x = element_blank(),
+            axis.ticks.y = element_blank(),
+            axis.text.y=element_text(angle=0, size=11,colour="#525252"),
+            axis.text.x=element_text(angle=90, size=11,vjust=0.5 ,hjust=1, colour="#525252"),
+            axis.title.x=element_text(angle=0, size=14,colour="#525252"),
+            axis.title.y=element_text(angle=90, size=14,colour="#525252"),
+            legend.position="bottom",
+            legend.title = element_text(angle=0, size=12,colour="#525252"),
+            panel.border = element_blank()) 
+ggsave(filename = "~/Downloads/Slidr_Results/Pan_cancer_8pc/SLpairs_8pc_bubblePlot.pdf", width = 18, height = 17, units = "in")
+  
+```
+
+Plotting p-values for a given pair across different cancers.
+
+```{r bubble_plot_2}
+hits_pancan <- read.delim("~/Downloads/Slidr_Results/Pan_cancer_8pc/Hit_List/SL_hits_pan_cancer.txt",stringsAsFactors = F)
+
+load("~/Downloads/Slidr_Results/Pan_cancer_8pc/pancan.Rdata")
+
+# create data frame for each pair with frequency of different celllines
+canc_type_df <- do.call(rbind.data.frame, lapply(1:nrow(hits_pancan), function(x){
+                                                  mutations     <- pc_data$mutations
+                                                  mut_celllines <- names(which(mutations[hits_pancan$driver_gene[x],] == 1))
+                                                  cancer_types  <- sapply(mut_celllines, 
+                                                                        function(x){paste(strsplit(x,"_")[[1]][-1], collapse = "_")})
+                                                  cancer_types  <- as.data.frame(table(cancer_types))
+                                                  data.frame(hits_pancan$driver_gene[x], hits_pancan$sl_partner_gene[x], cancer_types)
+                                                #}
+                                                
+}))
+
+colnames(canc_type_df) <- c("driver_gene", "sl_partner_gene", "canc_type", "n_samples")
+
+min_Nmut = 2
+
+# get the p-value for each pair and type of cancer
+pval_df <- do.call(rbind.data.frame, lapply(1:nrow(canc_type_df), function(x){
+                                          canc_type        <- as.character(canc_type_df$canc_type[x])
+                                          driver           <- as.character(canc_type_df$driver_gene[x])
+                                          sl_partner       <- as.character(canc_type_df$sl_partner_gene[x])
+                                          celllines        <- grep(canc_type,colnames(pc_data$mutations))
+                                          mut_samples      <- sum(pc_data$mutations[driver,celllines])
+                                          if(mut_samples >= min_Nmut & (length(celllines) - mut_samples) >= min_Nmut){
+                                            temp             <- pc_data
+                                            temp$mutations   <- pc_data$mutations[,celllines]
+                                            temp$viabilities <- pc_data$viabilities[,celllines]
+                                            c(canc_type,slidR::getPval(temp,driver,sl_partner))
+                                          }else
+                                            c(canc_type,driver,sl_partner,1,1)
+                                          
+}))
+
+colnames(pval_df) <- c("canc_type","driver_gene", "sl_partner_gene", "WT_pvalue", "mut_pvalue")
+summary_df <- left_join(canc_type_df, pval_df, by = c("driver_gene","sl_partner_gene","canc_type"))
+summary_df <- cbind(paste(summary_df$driver_gene,summary_df$sl_partner_gene, sep = "_"), summary_df)
+summary_df <- cbind(paste(summary_df$driver_gene,summary_df$sl_partner_gene, sep = "_"), summary_df)
+colnames(summary_df)[1] <- "sl_pairs"
+
+ggplot(summary_df, aes(x=canc_type, y=sl_pairs, size = -log(as.numeric(as.character(mut_pvalue)), base = 10))) + 
+      geom_point(fill = "#055C95",color="#055C95", alpha=0.45) + 
+      scale_size_continuous(range=c(0.5, 5)) +
+      theme_bw()
+```

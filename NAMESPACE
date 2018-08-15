@@ -3,6 +3,7 @@
 export(IH_CDF)
 export(getCelllines)
 export(getEssentialGenes)
+export(getPval)
 export(identifySLHits)
 export(plotSLBoxplot)
 export(prepareCNMat)

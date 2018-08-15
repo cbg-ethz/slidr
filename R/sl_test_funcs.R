@@ -141,9 +141,9 @@ getPval <- function(canc_data, driver_gene, sl_partner_gene){
   WT_pvalue       <- min(wilcox.test(WT_viabilities, mu = 0, alternative = "two.sided")$p.value,
                          t.test(WT_viabilities, mu = 0, alternative = "two.sided")$p.value)
 
-  cbind(as.character(driver_gene),
-        as.character(sl_partner_gene),
-        as.numeric(as.character(WT_pvalue)),
-        as.numeric(as.character(mut_pvalue)))
+  cbind.data.frame(driver_gene,
+                    sl_partner_gene,
+                    WT_pvalue,
+                    mut_pvalue)
 }
 

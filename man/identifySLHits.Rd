@@ -7,15 +7,11 @@ Rank test based on Irwin-Hall distribution to identify synthetic lethal (SL) par
 in the mutated samples. The function also performs a two sided wilcoxon or t-test
 on the wild type samples to give a p-value required for filtering.}
 \usage{
-identifySLHits(canc_data, n_cand = 100, qval_thresh = 1, path_results,
+identifySLHits(canc_data, qval_thresh = 1, path_results,
   WT_pval_thresh = 0.2)
 }
 \arguments{
 \item{canc_data}{Processed data object for a given cancer type}
-
-\item{n_cand}{first 'n' number of SL partners to be tested after ranking. Default = 100
-This is just to save on computation time since after multiple testing correction we will be
-filtering a lot of them out.}
 
 \item{qval_thresh}{The number of false positives allowed after correction. Default = 1}
 
