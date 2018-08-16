@@ -1,0 +1,274 @@
+---
+title: "Running slidr"
+author: "Sumana Srivatsa"
+date: "8/2/2018"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Creating data object
+
+Loading all the relevant data and creating the data object with the mutation and viability scores for each type of cancer. 
+
+```{r data_object}
+library(reshape2)
+
+# Set path to all data
+base_folder = "~/GitHub/CrispR/Data/"
+  
+# Loading mutations for all cell lines
+all_cancers_mut_df <- read.delim(paste0(base_folder,
+                                       "MutationFiles/MutationsCCLE/CCLE_maf_allcancers.txt"),
+                                stringsAsFactors = FALSE, header = TRUE)
+# Filtering out silent mutations
+all_cancers_mut_df <- all_cancers_mut_df %>% 
+                        dplyr::filter(Variant_Classification != "Silent" )
+  
+# Load annotation file and meta data
+cellline_annot <-  read.csv(paste0(base_folder, "ProjectDRIVE/TableS2.csv"),
+                            stringsAsFactors = F)
+meta_data <- read.csv(paste0(base_folder, "MutationFiles/File_metadata.csv"), 
+                      header = TRUE, stringsAsFactors = FALSE)
+Primary_sites <-   meta_data$Primary_site
+  
+# Load log2 copy number data
+CN_df <- read.delim(paste0(base_folder,"/CopyNumber/CCLE_copynumber_byGene.txt"),
+                     stringsAsFactors = F, header = T)
+  
+# Load Gistic copy number data
+CN_df_gistic <- read.delim(paste0(base_folder,"/CopyNumber/CCLE_CNA_Integers.txt"),
+                            stringsAsFactors = F, header=T)
+CN_df_gistic <- CN_df_gistic[-which(duplicated(CN_df_gistic$Hugo_Symbol)),]
+
+# Getting essential genes
+data_rsa <- readRDS(paste0(base_folder, "ProjectDRIVE/DRIVE_RSA_data.RDS"))
+
+# Remove the essential data from ATARiS normalised data
+data_ataris <- readRDS(paste0(base_folder, "ProjectDRIVE/DRIVE_ATARiS_data.RDS"))
+
+# Getting a list of cell lines for each cancer type
+cellline_list <- lapply(Primary_sites, 
+                        function(x){slidr::getCelllines(x, cellline_annot, meta_data)})
+names(cellline_list) <- Primary_sites
+
+# Getting a list of essential genes for each cancer type
+essen_gene_list <- lapply(names(cellline_list), 
+                        function(x){slidr::getEssentialGenes(x = x, 
+                                                             celllines = cellline_list[[x]], 
+                                                             data = data_rsa)})
+names(essen_gene_list) <- Primary_sites
+
+all_data = list()
+fdr = 0.05
+min_Nmut = 2
+
+# Generate objects for each primary site
+all_data <- lapply(Primary_sites, 
+                   function(x){ slidr::prepareDataObjects(data = data_ataris, 
+                                                      x = x, 
+                                                      fdr = fdr, 
+                                                      min_Nmut = min_Nmut, 
+                                                      all_cancers_mut_df = all_cancers_mut_df, 
+                                                      CN_df = CN_df_gistic, 
+                                                      gistic = TRUE, 
+                                                      celllines = cellline_list[[x]], 
+                                                      meta_data = meta_data, 
+                                                      essential_genes = essen_gene_list[[x]])})
+names(all_data) <- Primary_sites
+
+```
+## Identify SL hits
+
+Once the data is processed in the correct format, use the `identifySLHits` function to get the mutation-specific SL partner for each cancer type. 
+
+```{r Identify_SL}
+path_results <- "~/Downloads/Slidr_Results/"
+
+hits <- lapply(all_data, 
+               function(x){slidr::identifySLHits(canc_data = x, path_results = path_results)})
+names(hits) <- names(all_data)
+
+```
+## Pan Cancer Analysis
+
+Creating the data object for the pan-cancer analysis. 
+
+```{r Pancancer}
+# Choosing cell lines with both CN and viability data and the driver genes
+pc_celllines  <- intersect(colnames(data_ataris),tolower(colnames(CN_df)))
+driver_genes  <- unique(all_cancers_mut_df$Hugo_Symbol)
+# Getting the essential genes
+pc_essen_gene <- slidr::getEssentialGenes(x = NULL, data = data_rsa, celllines = pc_celllines)
+# Removing the essential genes
+pc_data <- list(viabilities = NULL,
+                mutations = NULL,
+                CNalterations = NULL,
+                mutation_annot = NULL,
+                primary_site = "pan_cancer")
+
+data_ataris <- as.data.frame(t(apply(data_ataris,
+                                      1,
+                                      function(x){
+                                           x[which(is.na(x))] <- mean(x, na.rm = TRUE)
+                                           x})))
+pc_data$viabilities <- data_ataris[!rownames(data_ataris) %in% pc_essen_gene,pc_celllines]
+
+# Threshold for removing drivers with fewer than 2% mutated samples
+mut_pc     <- 8 #2         
+mut_thresh <- floor(mut_pc * length(pc_celllines) / 100)
+CN_Thr     <- 1 # Threshold to choose only deep deletions
+# Binary mutation data
+mut_mat    <- slidr::prepareMutMat(x = NULL, 
+                                  driver_genes = driver_genes, 
+                                  samples = pc_celllines,
+                                  all_cancers_mut_df = all_cancers_mut_df)
+
+pc_data$CNalterations <- slidr::prepareCNMat(CN_df = CN_df, 
+                                             samples = pc_celllines,
+                                             driver_genes = driver_genes, 
+                                             x = NULL)
+
+# binarized copy number data with only deep deletions 
+CN_bin <- binarize(2 - pc_data$CNalterations, threshold = CN_Thr)
+CN_bin[is.na(CN_bin)] <- 0
+
+# Updating copy numbers in mutation matrix
+pc_data$mutations <- binarize((CN_bin + mut_mat), threshold = 0)
+
+# Removing genes with < 2% mutated samples
+pc_data$mutations   <- pc_data$mutations[rowSums(pc_data$mutations) >= mut_thresh, ]
+
+# Create a mutation annotation file
+mut_mat_annot <- melt(pc_data$mutations)
+mut_mat_annot <- mut_mat_annot %>% dplyr::filter(value != 0)
+colnames(mut_mat_annot) <- c("Hugo_Symbol","Cell_Line","Mut_Status")
+# Use copy number info in the mutation annotation file
+all_cancers_mut_df$Tumor_Sample_Barcode <- tolower(all_cancers_mut_df$Tumor_Sample_Barcode)
+CN_alterations_df <- melt(pc_data$CNalterations)
+colnames(CN_alterations_df) <- c("Hugo_Symbol","Cell_Line","CN_Value")
+
+# Annotating mutations and adding copy number information
+pc_data$mutation_annot <- left_join(mut_mat_annot,all_cancers_mut_df,
+                              by = c("Hugo_Symbol" = "Hugo_Symbol","Cell_Line" = "Tumor_Sample_Barcode")) %>%
+                          dplyr::select(Hugo_Symbol, Cell_Line, Mut_Status, Variant_Classification) %>%
+                          dplyr::group_by(Hugo_Symbol,Cell_Line,Mut_Status) %>% 
+                          dplyr::summarise(Variant_Classification = paste(Variant_Classification, collapse=";")) 
+
+pc_data$mutation_annot <- left_join(pc_data$mutation_annot, CN_alterations_df, by = c("Hugo_Symbol","Cell_Line"))
+
+# Replacing all the na
+pc_data$mutation_annot[is.na(pc_data$mutation_annot)] <- 0
+
+save.image("~/Downloads/Slidr_Results/pancan.Rdata")
+
+```
+Identify Synthetic lethals from pan cancer data.
+
+```{r sl_pancancer}
+# Path for results
+path_results <- "~/Downloads/Slidr_Results/"
+
+hits_pancan <- slidr::identifySLHits(canc_data = pc_data, path_results = path_results, WT_pval_thresh = 0, qval_thresh = 1)
+
+```
+
+Plotting p-values of the SL pairs and identifying partners that are partners for many drivers.
+
+```{r bubble_plot_1}
+hits_pancan <- read.delim("~/Downloads/Slidr_Results/Pan_cancer_8pc/Hit_List/SL_hits_pan_cancer.txt",stringsAsFactors = F)
+hits_pancan$sl_partner_gene <- sapply(hits_pancan$sl_partner_gene, function(x){strsplit(x, ",")[[1]][1]})
+
+p <- ggplot(hits_pancan, aes(x=driver_gene, y=sl_partner_gene, size = -log(mut_pvalue, base = 10))) + 
+      geom_point(fill = "#055C95",color="#055C95", alpha=0.45) + 
+      scale_size_continuous(range=c(2, 10)) +
+      theme_bw() +
+      xlab("Driver genes") +
+      ylab("SL partner genes") +
+      labs(size = "-log(p-value)")+
+      theme(panel.grid.major = element_line(size = 0.1),
+            panel.grid.minor = element_blank(),
+            axis.ticks.x = element_blank(),
+            axis.ticks.y = element_blank(),
+            axis.text.y=element_text(angle=0, size=11,colour="#525252"),
+            axis.text.x=element_text(angle=90, size=11,vjust=0.5 ,hjust=1, colour="#525252"),
+            axis.title.x=element_text(angle=0, size=14,colour="#525252"),
+            axis.title.y=element_text(angle=90, size=14,colour="#525252"),
+            legend.position="bottom",
+            legend.title = element_text(angle=0, size=12,colour="#525252"),
+            panel.border = element_blank()) 
+ggsave(filename = "~/Downloads/Slidr_Results/Pan_cancer_8pc/SLpairs_8pc_bubblePlot.pdf", width = 18, height = 17, units = "in")
+  
+```
+
+Plotting p-values for a given pair across different cancers.
+
+```{r bubble_plot_2}
+hits_pancan <- read.delim("~/Downloads/Slidr_Results/Pan_cancer_8pc/Hit_List/SL_hits_pan_cancer.txt",stringsAsFactors = F)
+
+load("~/Downloads/Slidr_Results/Pan_cancer_8pc/pancan.Rdata")
+
+# create data frame for each pair with frequency of different celllines
+canc_type_df <- do.call(rbind.data.frame, lapply(1:nrow(hits_pancan), function(x){
+                                                  mutations     <- pc_data$mutations
+                                                  mut_celllines <- names(which(mutations[hits_pancan$driver_gene[x],] == 1))
+                                                  cancer_types  <- sapply(mut_celllines, 
+                                                                        function(x){paste(strsplit(x,"_")[[1]][-1], collapse = "_")})
+                                                  cancer_types  <- as.data.frame(table(cancer_types))
+                                                  data.frame(hits_pancan$driver_gene[x], hits_pancan$sl_partner_gene[x], cancer_types)
+                                                #}
+                                                
+}))
+
+colnames(canc_type_df) <- c("driver_gene", "sl_partner_gene", "canc_type", "n_samples")
+
+min_Nmut = 2
+
+# get the p-value for each pair and type of cancer
+pval_df <- do.call(rbind.data.frame, lapply(1:nrow(canc_type_df), function(x){
+                                          canc_type        <- as.character(canc_type_df$canc_type[x])
+                                          driver           <- as.character(canc_type_df$driver_gene[x])
+                                          sl_partner       <- as.character(canc_type_df$sl_partner_gene[x])
+                                          celllines        <- grep(canc_type,colnames(pc_data$mutations))
+                                          mut_samples      <- sum(pc_data$mutations[driver,celllines])
+                                          if(mut_samples >= min_Nmut & (length(celllines) - mut_samples) >= min_Nmut){
+                                            temp             <- pc_data
+                                            temp$mutations   <- pc_data$mutations[,celllines]
+                                            temp$viabilities <- pc_data$viabilities[,celllines]
+                                            c(canc_type,slidr::getPval(temp,driver,sl_partner))
+                                          }else
+                                            c(canc_type,driver,sl_partner,1,1)
+                                          
+}))
+
+colnames(pval_df) <- c("canc_type","driver_gene", "sl_partner_gene", "WT_pvalue", "mut_pvalue")
+summary_df <- left_join(canc_type_df, pval_df, by = c("driver_gene","sl_partner_gene","canc_type"))
+summary_df <- cbind(paste(summary_df$driver_gene,summary_df$sl_partner_gene, sep = "_"), summary_df)
+summary_df <- cbind(paste(summary_df$driver_gene,summary_df$sl_partner_gene, sep = "_"), summary_df)
+colnames(summary_df)[1] <- "sl_pairs"
+summary_df <- summary_df %>% dplyr::filter(mut_pvalue != 1 & WT_pvalue != 1)
+
+ggplot(summary_df, aes(x=canc_type, y=sl_pairs, size = -log(as.numeric(as.character(mut_pvalue)), base = 10))) + 
+      geom_point(fill = "#055C95",color="#055C95", alpha=0.45) + 
+      scale_size_continuous(range=c(0, 5)) +
+      theme_bw() +
+      xlab("Primary sites") +
+      ylab("SL partner genes") +
+      labs(size = "-log(p-value)")+
+      theme(panel.grid.major = element_line(size = 0.1),
+            panel.grid.minor = element_blank(),
+            axis.ticks.x = element_blank(),
+            axis.ticks.y = element_blank(),
+            axis.text.y=element_text(angle=0, size=11,colour="#525252"),
+            axis.text.x = element_text(angle = 30, size=11, vjust=1, hjust=1, colour="#525252"),
+            axis.title.x=element_text(angle=0, size=14,colour="#525252"),
+            axis.title.y=element_text(angle=90, size=14,colour="#525252"),
+            legend.position="bottom",
+            legend.title = element_text(angle=0, size=12,colour="#525252"),
+            panel.border = element_blank()) +
+    scale_x_discrete(labels = c("Autonomic ganglia", "Bone", "Breast", "CNS", "Endometrium", "Blood", "Kidney", "Large intestine", "Liver", "Lung",
+                                "Oesophagus", "Ovary", "Pancreas", "Pleura", "Skin", "Soft tissue", "Stomach", "UADT", "Urinary tract") )
+```
+
