@@ -1,4 +1,4 @@
-Package: slidR
+Package: slidr
 Title: Discovery of mutation-specific synthetic lethal partners from large pan-cancer perturbation screens
 Version: 0.1.0
 Authors@R: c(person("Sumana", "Srivatsa", email = "sumana.srivatsa@bsse.ethz.ch", role = c("aut", "cre")),

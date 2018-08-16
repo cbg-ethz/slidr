@@ -97,7 +97,7 @@ identifySLHits <- function(canc_data, qval_thresh = 1, path_results, WT_pval_thr
   # results                 <- results %>% dplyr::filter(mut_qvalue < qval_thresh)
   results                 <- results[order(results$mut_pvalue),]
 
-  slidR::plotSLBoxplot(canc_data = canc_data,
+  slidr::plotSLBoxplot(canc_data = canc_data,
                        hits_df = results,
                        path_results = path_results,
                        WT_pval_thresh = WT_pval_thresh)
