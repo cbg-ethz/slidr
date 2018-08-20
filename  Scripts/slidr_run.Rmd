@@ -17,6 +17,8 @@ Loading all the relevant data and creating the data object with the mutation and
 library(reshape2)
 library(dplyr)
 library(viridis)
+library(ggplot2)
+library(nem)
 
 # Set path to all data
 base_folder = "~/GitHub/CrispR/Data/"
@@ -183,7 +185,7 @@ Plotting p-values of the SL pairs and identifying partners that are partners for
 hits_pancan <- read.delim("~/Downloads/Slidr_Results/Pan_cancer_8pc/Hit_List/SL_hits_pan_cancer.txt",stringsAsFactors = F)
 hits_pancan$sl_partner_gene <- sapply(hits_pancan$sl_partner_gene, function(x){strsplit(x, ",")[[1]][1]})
 
-p <- ggplot(hits_pancan, aes(x=driver_gene, y=sl_partner_gene, size = -log(mut_pvalue, base = 10))) + 
+p1 <- ggplot(hits_pancan, aes(x=driver_gene, y=sl_partner_gene, size = -log(mut_pvalue, base = 10))) + 
       geom_point(fill = "#055C95",color="#055C95", alpha=0.45) + 
       scale_size_continuous(range=c(2, 10)) +
       theme_bw() +
@@ -201,7 +203,7 @@ p <- ggplot(hits_pancan, aes(x=driver_gene, y=sl_partner_gene, size = -log(mut_p
             legend.position="bottom",
             legend.title = element_text(angle=0, size=12,colour="#525252"),
             panel.border = element_blank()) 
-ggsave(filename = "~/Downloads/Slidr_Results/Pan_cancer_8pc/SLpairs_8pc_bubblePlot.pdf", width = 18, height = 17, units = "in")
+ggsave(filename = "~/Downloads/Slidr_Results/Pan_cancer_8pc/SLpairs_8pc_bubblePlot.pdf", p1, width = 18, height = 17, units = "in")
   
 ```
 
@@ -252,7 +254,7 @@ summary_df                 <- cbind(paste(summary_df$driver_gene,summary_df$sl_p
                                     summary_df,
                                     rowSums(pc_data$mutations[summary_df$driver_gene,]))
 colnames(summary_df)[c(1,8)]  <- c("sl_pairs","tot_samples")
-summary_df                 <- summary_df %>% dplyr::filter(mut_pvalue != 1 & WT_pvalue != 1)
+summary_df                    <- summary_df %>% dplyr::filter(mut_pvalue != 1 & WT_pvalue != 1)
 
 # Using bubble plot to summarize the p-values in each cancer type
 q1 <- ggplot(summary_df, aes(y=canc_type, x=sl_pairs, size = -log(as.numeric(as.character(mut_pvalue)), base = 10))) + 
@@ -305,6 +307,60 @@ ggsave(filename = "~/Downloads/Slidr_Results/Pan_cancer_8pc/SLpairs_canctype_8pc
 Plotting stacked bar plot for number of samples.
 
 ```{r stacked_barplot}
-ggplot(summary_df, aes(fill = n_samples, x = sl_pairs, y = tot_samples)) +
-   geom_bar(position="dodge", stat="identity")
+barplot_df <- summary_df %>% dplyr::distinct(driver_gene, n_samples, canc_type)
+barplot_df$canc_type <- factor(barplot_df$canc_type, 
+                               labels = c("Autonomic ganglia", "Bone", "Breast", "CNS", "Endometrium", "Blood", "Kidney", "Large intestine", "Liver", "Lung", "Oesophagus",
+"Ovary", "Pancreas", "Pleura", "Skin", "Soft tissue", "Stomach", "UADT", "Urinary tract"))
+
+coloursSites <- c("#CC99BB", "#AA4488", "#771155", "#77AADD",
+"#4477AA", "#114477", "#77CCCC", "#44AAAA", "#117777", "#88CCAA",
+"#44AA77", "#117744", "#DDDD77", "#AAAA44", "#777711", "#DDAA77",
+"#AA7744", "#774411", "#DD7788")
+
+p2 <- ggplot(barplot_df, aes(fill = canc_type, x = driver_gene, y = n_samples)) +
+        geom_bar(stat = "identity") +
+        theme_bw() +
+        ylab("Number of mutated cell lines") +
+        xlab("Driver genes") +
+        labs(fill = "Primary site")+
+        theme(panel.grid.major = element_blank(),
+             panel.grid.minor = element_blank(),
+             panel.border = element_blank(),
+             axis.line = element_line(colour = "#525252"),
+             axis.text.x = element_text(angle = 90, vjust=0.4, hjust=1, size=11,colour="#525252"),
+             axis.text.y = element_text(angle = 0, size=11, vjust=1, hjust=1, colour="#525252"),
+             axis.title.x=element_text(angle = 0, size=14,colour="#525252"),
+             axis.title.y=element_text(angle=90, size=14,colour="#525252"),
+             legend.position="right",
+             legend.title = element_text(angle=0, size=12,colour="#525252"))+
+        scale_fill_manual(values = coloursSites)+
+        scale_y_continuous(breaks = seq(0, 280, by = 40))
+
+ggsave("~/Downloads/Slidr_Results/Pan_cancer_8pc/drivers_canctype_8pc_barplot.pdf", p2, width = 17, height = 8, units = "in")
+```
+Group the SL partners and learn the subset structures between mutated genes. We use the `nem` package for this.
+
+```{r subset_relations}
+grouped_hits <- hits_pancan %>% 
+                dplyr::group_by(sl_partner_gene) %>% 
+                summarise(drivers = paste(driver_gene, collapse = ","))
+
+for(i in 1:nrow(grouped_hits)){
+  temp_drivers <- sapply(grouped_hits$drivers[i], function(x){strsplit(x,",")[[1]]})
+  D            <- t(pc_data$mutations[temp_drivers,])
+  control      <- set.default.parameters(unique(colnames(D)),type="mLL",pcombi = TRUE, trans.close=TRUE, para = c(1e-4,1e-4))
+  temp_res     <- nem(D, inference = "ModuleNetwork", control=control, verbose=FALSE)
+  temp_adj_mat <- transitive.reduction(as(temp_res$graph, "matrix"))
+  
+  plot(as(temp_adj_mat, "graphNEL"),
+       attrs=list(node=list(shape = "ellipse", 
+                            color="olivedrab3", 
+                            fontcolor="deepskyblue4",
+                            fontsize=12),
+                  edge=list(color="gray56", 
+                            arrowhead = "normal")),
+                  main= grouped_hits$sl_partner_gene[i], col.main = "gray56")
+  
+}
+
 ```
