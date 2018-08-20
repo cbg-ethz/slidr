@@ -347,12 +347,14 @@ grouped_hits <- hits_pancan %>%
 
 for(i in 1:nrow(grouped_hits)){
   temp_drivers <- sapply(grouped_hits$drivers[i], function(x){strsplit(x,",")[[1]]})
-  D            <- t(pc_data$mutations[temp_drivers,])
-  control      <- set.default.parameters(unique(colnames(D)),type="mLL",pcombi = TRUE, trans.close=TRUE, para = c(1e-4,1e-4))
-  temp_res     <- nem(D, inference = "ModuleNetwork", control=control, verbose=FALSE)
-  temp_adj_mat <- transitive.reduction(as(temp_res$graph, "matrix"))
+  if(length(temp_drivers) >= 2){ # running for two or more genes
+    D            <- t(pc_data$mutations[temp_drivers,])
+    control      <- set.default.parameters(unique(colnames(D)),type="mLL",pcombi = TRUE, trans.close=TRUE, para = c(1e-4,1e-4))
+    temp_res     <- nem(D, inference = "ModuleNetwork", control=control, verbose=FALSE)
+    temp_adj_mat <- transitive.reduction(as(temp_res$graph, "matrix"))
   
-  plot(as(temp_adj_mat, "graphNEL"),
+    pdf(file =  paste(path_results, "Subset_plots/", grouped_hits$sl_partner_gene[i], ".pdf", sep = ""))
+    plot(as(temp_adj_mat, "graphNEL"),
        attrs=list(node=list(shape = "ellipse", 
                             color="olivedrab3", 
                             fontcolor="deepskyblue4",
@@ -360,6 +362,8 @@ for(i in 1:nrow(grouped_hits)){
                   edge=list(color="gray56", 
                             arrowhead = "normal")),
                   main= grouped_hits$sl_partner_gene[i], col.main = "gray56")
+    dev.off()
+  }
   
 }
 
