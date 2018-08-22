@@ -194,15 +194,17 @@ p1 <- ggplot(hits_pancan, aes(x=driver_gene, y=sl_partner_gene, size = -log(mut_
       labs(size = "-log(p-value)")+
       theme(panel.grid.major = element_line(size = 0.1),
             panel.grid.minor = element_blank(),
+            panel.border = element_blank(),
             axis.ticks.x = element_blank(),
             axis.ticks.y = element_blank(),
             axis.text.y=element_text(angle=0, size=11,colour="#525252"),
             axis.text.x=element_text(angle=90, size=11,vjust=0.5 ,hjust=1, colour="#525252"),
-            axis.title.x=element_text(angle=0, size=14,colour="#525252"),
-            axis.title.y=element_text(angle=90, size=14,colour="#525252"),
+            axis.title.x=element_text(angle=0, size=20,colour="#525252"),
+            axis.title.y=element_text(angle=90, size=20,colour="#525252"),
             legend.position="bottom",
-            legend.title = element_text(angle=0, size=12,colour="#525252"),
-            panel.border = element_blank()) 
+            legend.title = element_text(angle=0, size=13,colour="#525252"),
+            legend.text = element_text(size=13,colour="#525252"),
+            legend.key.size = unit(0.75, "cm")) 
 ggsave(filename = "~/Downloads/Slidr_Results/Pan_cancer_8pc/SLpairs_8pc_bubblePlot.pdf", p1, width = 18, height = 17, units = "in")
   
 ```
@@ -266,35 +268,37 @@ q1 <- ggplot(summary_df, aes(y=canc_type, x=sl_pairs, size = -log(as.numeric(as.
       labs(size = "-log(p-value)")+
       theme(panel.grid.major = element_line(size = 0.1),
             panel.grid.minor = element_blank(),
+            panel.border = element_blank(),
             axis.ticks.x = element_blank(),
             axis.ticks.y = element_blank(),
-            axis.text.x = element_text(angle = 90, vjust=1, hjust=1, size=11,colour="#525252"),
-            axis.text.y = element_text(angle = 0, size=11, vjust=1, hjust=1, colour="#525252"),
-            axis.title.x=element_text(angle = 0, size=14,colour="#525252"),
-            axis.title.y=element_text(angle=90, size=14,colour="#525252"),
+            axis.text.x = element_text(angle = 90, vjust=0.5, hjust=1, size=13,colour="#525252"),
+            axis.text.y = element_text(angle = 0, size=14, vjust=0.5, hjust=1, colour="#525252"),
+            axis.title.x=element_text(angle = 0, size=20,colour="#525252"),
+            axis.title.y=element_text(angle=90, size=20,colour="#525252"),
             legend.position="bottom",
-            legend.title = element_text(angle=0, size=12,colour="#525252"),
-            panel.border = element_blank()) +
+            legend.title = element_text(angle=0, size=15,colour="#525252"),
+            legend.text = element_text(size=13,colour="#525252"),
+            legend.key.size = unit(0.75, "cm")) +
     scale_y_discrete(labels = c("Autonomic ganglia", "Bone", "Breast", "CNS", "Endometrium", "Blood", "Kidney", "Large intestine", "Liver", "Lung", "Oesophagus", "Ovary", "Pancreas", "Pleura", "Skin", "Soft tissue", "Stomach", "UADT", "Urinary tract") )
 
 # Using a heatmap to describe the p-values in each cancer type
-q2 <- ggplot(summary_df, aes(sl_pairs,canc_type)) +
+q2 <- ggplot(summary_df, aes(x = sl_pairs,y = canc_type)) +
         geom_tile(aes(fill = -log(as.numeric(as.character(mut_pvalue))))) +
-        scale_fill_viridis(option="D", begin = 0.1, end = 0.9, alpha = 0.3) +
+        scale_fill_viridis(option="D", begin = 0.1, end = 0.9, alpha = 0.9) +
         theme_bw() +
         ylab("Primary sites") +
         xlab("Driver and SL partner genes") +
         labs(fill = "-log(p-value)")+
         theme(panel.grid.major = element_blank(),
             panel.grid.minor = element_blank(),
-            #axis.ticks.x = element_blank(),
-            #axis.ticks.y = element_blank(),
-            axis.text.x = element_text(angle = 90, vjust=1, hjust=1, size=11,colour="#525252"),
-            axis.text.y = element_text(angle = 0, size=11, vjust=1, hjust=1, colour="#525252"),
-            axis.title.x=element_text(angle = 0, size=14,colour="#525252"),
-            axis.title.y=element_text(angle=90, size=14,colour="#525252"),
+            axis.text.x = element_text(angle = 90, vjust=0.5, hjust=1, size=13,colour="#525252"),
+            axis.text.y = element_text(angle = 0, size=14, vjust=0.5, hjust=1, colour="#525252"),
+            axis.title.x=element_text(angle = 0, size=20,colour="#525252"),
+            axis.title.y=element_text(angle=90, size=20,colour="#525252"),
             legend.position="bottom",
-            legend.title = element_text(angle=0, size=12,colour="#525252"))+
+            legend.title = element_text(angle=0, size=15,colour="#525252"),
+            legend.text = element_text(size=13,colour="#525252"),
+            legend.key.size = unit(0.9, "cm"))+
             #panel.border = element_blank()) +
         scale_y_discrete(labels = c("Autonomic ganglia", "Bone", "Breast", "CNS", "Endometrium", 
                                     "Blood", "Kidney", "Large intestine", "Liver", "Lung", "Oesophagus", 
@@ -307,7 +311,7 @@ ggsave(filename = "~/Downloads/Slidr_Results/Pan_cancer_8pc/SLpairs_canctype_8pc
 Plotting stacked bar plot for number of samples.
 
 ```{r stacked_barplot}
-barplot_df <- summary_df %>% dplyr::distinct(driver_gene, n_samples, canc_type)
+barplot_df <- summary_df %>% dplyr::distinct(driver_gene, n_samples, canc_type, tot_samples)
 barplot_df$canc_type <- factor(barplot_df$canc_type, 
                                labels = c("Autonomic ganglia", "Bone", "Breast", "CNS", "Endometrium", "Blood", "Kidney", "Large intestine", "Liver", "Lung", "Oesophagus",
 "Ovary", "Pancreas", "Pleura", "Skin", "Soft tissue", "Stomach", "UADT", "Urinary tract"))
@@ -317,7 +321,7 @@ coloursSites <- c("#CC99BB", "#AA4488", "#771155", "#77AADD",
 "#44AA77", "#117744", "#DDDD77", "#AAAA44", "#777711", "#DDAA77",
 "#AA7744", "#774411", "#DD7788")
 
-p2 <- ggplot(barplot_df, aes(fill = canc_type, x = driver_gene, y = n_samples)) +
+p2 <- ggplot(barplot_df, aes(fill = canc_type, x = reorder(driver_gene,tot_samples), y = n_samples)) +
         geom_bar(stat = "identity") +
         theme_bw() +
         ylab("Number of mutated cell lines") +
@@ -329,14 +333,16 @@ p2 <- ggplot(barplot_df, aes(fill = canc_type, x = driver_gene, y = n_samples)) 
              axis.line = element_line(colour = "#525252"),
              axis.text.x = element_text(angle = 90, vjust=0.4, hjust=1, size=11,colour="#525252"),
              axis.text.y = element_text(angle = 0, size=11, vjust=1, hjust=1, colour="#525252"),
-             axis.title.x=element_text(angle = 0, size=14,colour="#525252"),
-             axis.title.y=element_text(angle=90, size=14,colour="#525252"),
+             axis.title.x=element_text(angle = 0, size=16,colour="#525252"),
+             axis.title.y=element_text(angle=90, size=16,colour="#525252"),
              legend.position="right",
-             legend.title = element_text(angle=0, size=12,colour="#525252"))+
+             legend.title = element_text(angle=0, size=13,colour="#525252"),
+             legend.text = element_text(size=12,colour="#525252"),
+             legend.key.size = unit(0.75, "cm"))+
         scale_fill_manual(values = coloursSites)+
         scale_y_continuous(breaks = seq(0, 280, by = 40))
 
-ggsave("~/Downloads/Slidr_Results/Pan_cancer_8pc/drivers_canctype_8pc_barplot.pdf", p2, width = 17, height = 8, units = "in")
+ggsave("~/Downloads/Slidr_Results/Pan_cancer_8pc/drivers_canctype_8pc_barplot.pdf", p2, width = 18, height = 8, units = "in")
 ```
 Group the SL partners and learn the subset structures between mutated genes. We use the `nem` package for this.
 
