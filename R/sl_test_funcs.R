@@ -94,8 +94,13 @@ identifySLHits <- function(canc_data, qval_thresh = 1, path_results, WT_pval_thr
   results$mut_qvalue      <- as.numeric(as.character(results$mut_qvalue))
   results$driver_gene     <- as.character(results$driver_gene)
   results$sl_partner_gene <- as.character(results$sl_partner_gene)
-  # results                 <- results %>% dplyr::filter(mut_qvalue < qval_thresh)
   results                 <- results[order(results$mut_pvalue),]
+  drugs_df                <- detailedResults(queryDGIdb(unique(results$sl_partner_gene)))
+  drugs_df                <- drugs_df %>%
+                             dplyr::group_by(Gene) %>%
+                             dplyr::summarise(Drugs  = paste(Drug, collapse = ","))
+  drugs_df$Gene           <- as.character(drugs_df$Gene)
+  results                 <- left_join(results, drugs_df, by = c("sl_partner_gene" = "Gene"))
 
   slidr::plotSLBoxplot(canc_data = canc_data,
                        hits_df = results,
