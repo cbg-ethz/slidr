@@ -1,4 +1,5 @@
 #' Function to plot annotated box-plots of SL pairs for a given cancer type
+#'
 #' @import RColorBrewer
 #' @param canc_data Processed data object for a given cancer type
 #' @param hits_df dataframe of SL pairs with their p-values returned by `identifySLHits` function

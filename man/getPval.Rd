@@ -2,9 +2,7 @@
 % Please edit documentation in R/sl_test_funcs.R
 \name{getPval}
 \alias{getPval}
-\title{P-value for a given pair of genes
-Given the processed data object, a driver gene, and it's prospective partner, the
-function returns the p-values for the wild type and mutated samples.}
+\title{P-value for a given pair of genes}
 \usage{
 getPval(canc_data, driver_gene, sl_partner_gene)
 }
@@ -20,7 +18,6 @@ a dataframe of driver gene with its corresponding SL partner, the p-value in WT 
 p-value in mutated samples.
 }
 \description{
-P-value for a given pair of genes
 Given the processed data object, a driver gene, and it's prospective partner, the
 function returns the p-values for the wild type and mutated samples.
 }

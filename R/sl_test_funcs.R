@@ -1,6 +1,8 @@
 #' CDF for Irwin-Hall distribution
+#'
 #' The function computes the CDF for Irwin-Hall distribution which is the p-value for the
 #' rank of viablities in the mutated samples.
+#'
 #' @param x normalised rank sum of viabilities in the mutated samples
 #' @param n number of mutated samples
 #' @return the CDF value
@@ -20,10 +22,13 @@ IH_CDF <- function(x, n) {
 }
 
 #' Retrieve list of mutation-specific synthetic lethal partners for each type of cancer
+#'
 #' Rank test based on Irwin-Hall distribution to identify synthetic lethal (SL) partners
 #' in the mutated samples. The function also performs a two sided wilcoxon or t-test
 #' on the wild type samples to give a p-value required for filtering.
+#'
 #' @import tidyr
+#' @import rDGIdb
 #' @param canc_data Processed data object for a given cancer type
 #' @param qval_thresh The number of false positives allowed after correction. Default = 1
 #' @param path_results The path to where the results should be stored
@@ -114,8 +119,10 @@ identifySLHits <- function(canc_data, qval_thresh = 1, path_results, WT_pval_thr
 
 
 #' P-value for a given pair of genes
+#'
 #' Given the processed data object, a driver gene, and it's prospective partner, the
 #' function returns the p-values for the wild type and mutated samples.
+#'
 #' @import tidyr
 #' @param canc_data Processed data object for a given cancer type.
 #' @param driver_gene The target mutated gene.

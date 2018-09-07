@@ -2,9 +2,7 @@
 % Please edit documentation in R/sl_test_funcs.R
 \name{IH_CDF}
 \alias{IH_CDF}
-\title{CDF for Irwin-Hall distribution
-The function computes the CDF for Irwin-Hall distribution which is the p-value for the
-rank of viablities in the mutated samples.}
+\title{CDF for Irwin-Hall distribution}
 \usage{
 IH_CDF(x, n)
 }
@@ -17,7 +15,6 @@ IH_CDF(x, n)
 the CDF value
 }
 \description{
-CDF for Irwin-Hall distribution
 The function computes the CDF for Irwin-Hall distribution which is the p-value for the
 rank of viablities in the mutated samples.
 }

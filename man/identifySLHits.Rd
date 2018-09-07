@@ -2,10 +2,7 @@
 % Please edit documentation in R/sl_test_funcs.R
 \name{identifySLHits}
 \alias{identifySLHits}
-\title{Retrieve list of mutation-specific synthetic lethal partners for each type of cancer
-Rank test based on Irwin-Hall distribution to identify synthetic lethal (SL) partners
-in the mutated samples. The function also performs a two sided wilcoxon or t-test
-on the wild type samples to give a p-value required for filtering.}
+\title{Retrieve list of mutation-specific synthetic lethal partners for each type of cancer}
 \usage{
 identifySLHits(canc_data, qval_thresh = 1, path_results,
   WT_pval_thresh = 0.2)
@@ -25,7 +22,6 @@ a dataframe of driver gene with its corresponding SL partner, the p-value in WT 
 p-value in mutated samples and the corresponding value after correction.
 }
 \description{
-Retrieve list of mutation-specific synthetic lethal partners for each type of cancer
 Rank test based on Irwin-Hall distribution to identify synthetic lethal (SL) partners
 in the mutated samples. The function also performs a two sided wilcoxon or t-test
 on the wild type samples to give a p-value required for filtering.
