@@ -105,7 +105,7 @@ identifySLHits <- function(canc_data, qval_thresh = 1, path_results, WT_pval_thr
                              dplyr::group_by(Gene) %>%
                              dplyr::summarise(Drugs  = paste(Drug, collapse = ","))
   drugs_df$Gene           <- as.character(drugs_df$Gene)
-  results                 <- left_join(results, drugs_df, by = c("sl_partner_gene" = "Gene"))
+  results                 <- dplyr::left_join(results, drugs_df, by = c("sl_partner_gene" = "Gene"))
 
   slidr::plotSLBoxplot(canc_data = canc_data,
                        hits_df = results,

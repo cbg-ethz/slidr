@@ -228,6 +228,7 @@ prepareDataObjects <- function(data, x, fdr = 0.05, min_Nmut = 2, all_cancers_mu
     return(NULL)
   }else{
 
+    # TODO add an if statement to check if the top drivers is null or users can give their own genes
     # Getting the top driver genes
     top_drivers <- NULL
 
