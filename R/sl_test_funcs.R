@@ -9,7 +9,7 @@
 #' @export
 
 IH_CDF <- function(x, n) {
-  if(n <= 10){
+  if(n <= 20){
     X <-  floor(x)
     k <- seq(from = 0, to = X)
     # compute the cdf or p-value for n <= 100
