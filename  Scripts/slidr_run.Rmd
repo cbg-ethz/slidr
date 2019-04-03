@@ -221,13 +221,171 @@ p1 <- ggplot(hits_pancan, aes(x=driver_gene, y=sl_partner_gene, size = -log(mut_
 ggsave(filename = "~/Downloads/Slidr_Results/Pan_cancer_8pc/SLpairs_8pc_bubblePlot.pdf", p1, width = 18, height = 17, units = "in")
   
 ```
+Causal inference 
+
+```{r causality}
+set.seed(478)
+hits_pancan <- read.delim("~/Downloads/Slidr_Results/Pan_cancer_8pc/Hit_List/SL_hits_pan_cancer.txt",stringsAsFactors = F)
+
+load("~/Downloads/Slidr_Results/Pan_cancer_8pc/pancan.Rdata")
+
+causal_hits <- data.frame("driver_gene" = character(), 
+                          "sl_partner_gene" = character(), 
+                          "pval" = numeric())
+
+grouped_hits <- hits_pancan %>% 
+                dplyr::group_by(sl_partner_gene) %>% 
+                summarise(drivers = paste(driver_gene, collapse = ","))
+
+# set the caliper for matching
+set_cal = 0.1
+
+for(i in 1:nrow(grouped_hits)){
+  temp_drivers <- sapply(grouped_hits$drivers[i], function(x){strsplit(x,",")[[1]]})
+  if(length(temp_drivers) >= 2){ # running for two or more genes
+    # defining the causal df
+    sl_gene    <- grouped_hits$sl_partner_gene[i]
+    causal_df  <- t(pc_data$mutations[temp_drivers,])
+    causal_df  <- cbind.data.frame(t(pc_data$viabilities[sl_gene,rownames(causal_df)]), causal_df)
+    # To avoid confusion between driver and same gene as target
+    colnames(causal_df)[1]  <- "Viability"
+    causal_df[,"Viability"] <- 1 - binarize(causal_df[,"Viability"], threshold = median(causal_df[,"Viability"]))
+    colnames(causal_df)     <- gsub('-', "_", colnames(causal_df))
+    temp_drivers            <- gsub('-', "_", temp_drivers)
+    
+    for(j in 1: length(temp_drivers)){
+      # t_res <- NULL  
+      t_res <- data.frame("smd_sum" = numeric(),
+                          "p_val" = numeric())  
+      for(k in 1:50){
+        # Shuffling the rows for matching
+        temp_df   <- causal_df[sample(1:nrow(causal_df)),]
+        # values of viabilities and treatment var
+        y         <- temp_df$Viability
+        tr_gene   <- temp_drivers[j]
+        # covariates
+        xvars     <- temp_drivers[-j]
+        table1    <- CreateTableOne(vars = xvars, 
+                                    strata = tr_gene, 
+                                    data = temp_df, 
+                                    test = FALSE)
+        #print(table1,smd=TRUE)
+        
+        # Propensity matching
+        psmodel <- glm(as.formula(paste0(tr_gene," ~" ,paste(xvars, collapse = " + "))),
+                       family = binomial(),
+                       data = temp_df)
+        
+        #create propensity score
+        pscore <- psmodel$fitted.values
+        
+        #do greedy matching on logit(PS) using Match with a caliper
+        logit   <- function(p) {log(p)-log(1-p)}
+        err_mes <- try(Match(Tr = temp_df[,tr_gene],
+                             M = 1,
+                             X = logit(pscore),
+                             replace = FALSE,
+                             caliper = set_cal, 
+                             estimand = "ATT"), silent = FALSE)
+        if(is.na(err_mes[[1]])){
+          # t_res <- c(t_res,NaN)
+          t_res <- rbind.data.frame(t_res,
+                                    cbind.data.frame(smd_sum = NaN, p_val = NaN))
+        }else{
+          psmatch <- Match(Tr = temp_df[,tr_gene],
+                           M = 1,
+                           X = logit(pscore),
+                           replace = FALSE,
+                           caliper = set_cal, 
+                           estimand = "ATT")
+          matched <- temp_df[unlist(psmatch[c("index.treated","index.control")]), ]
+          
+          #get standardized differences
+          matchedtab1 <- CreateTableOne(vars=xvars, strata =tr_gene, 
+                                        data=matched, test = FALSE)
+          #print(matchedtab1, smd = TRUE)
+          temp_smd_sum <- sum(ExtractSmd(matchedtab1))
+          
+          #outcome analysis
+          y_trt <- matched$Viability[matched[,tr_gene] == 1]
+          y_con <- matched$Viability[matched[,tr_gene] == 0]
+          
+          #pairwise difference
+          diff_y <- y_trt - y_con
+        
+          # paired t-test
+          if(class(try(t.test(diff_y), silent = TRUE)) == "try-error"){
+            t_res <- rbind.data.frame(t_res,
+                                      cbind.data.frame(smd_sum = temp_smd_sum, p_val = NaN))
+          }else
+            t_res <- rbind.data.frame(t_res,
+                                      cbind.data.frame(smd_sum = temp_smd_sum, p_val = t.test(diff_y)$p.value))
+        }
+        # t_res <- t_res[!is.nan(t_res)]
+      
+      # print(length(t_res))
+      # print(pchisq(-2 * sum(log(t_res)),
+      #          df = 2 * length(t_res),
+      #          lower.tail=FALSE))
+      
+      # comb_pval <- pchisq(-2 * sum(log(t_res)),
+      #                     df = 2 * length(t_res),
+      #                     lower.tail = FALSE)
+      # 
+      }
+      # colnames(t_res) <- c("smd_sum", "p_val")
+      t_res           <- t_res[!is.nan(t_res$p_val),]
+      # causal_hits <- rbind.data.frame(causal_hits,
+      #                                 cbind.data.frame(tr_gene, sl_gene, comb_pval))
+      
+      # if all viabilities are equal then p-value will be NaN and hence we set the value to 1
+      if(nrow(t_res) != 0){
+        # setting p-val to median p-val when you have multiple samples with same min smd
+        if(sum(t_res$smd_sum == min(t_res$smd_sum)) > 1){
+          fin_pval <- t_res %>% 
+                      dplyr:: filter(smd_sum == min(t_res$smd_sum)) %>%
+                      dplyr::summarize(x = mean(p_val))
+        }else
+          fin_pval <- t_res$p_val[which.min(t_res$smd_sum)]
+      }else{
+        fin_pval <- NaN
+      }
+      causal_hits <- rbind.data.frame(causal_hits,
+                                      cbind.data.frame(driver_gene = tr_gene, 
+                                                       sl_partner_gene = sl_gene, 
+                                                       pval = as.numeric(fin_pval)))
+    }
+  }
+  
+}
+
+# retaining pairs for which true causal hit exists 
+best_causal_hits <- causal_hits %>% 
+                      dplyr::group_by(sl_partner_gene) %>%
+                      dplyr::slice(which.min(pval))
+
+# filtering out the pairs for which true causal hit exists 
+insig_causal_hits <- causal_hits %>% 
+                      dplyr::group_by(sl_partner_gene) %>%
+                      dplyr::slice(-which.min(pval))
+
+# Remove the insignificant causal pairs from the total pancancer hits
+filt_hits_pancan <- hits_pancan %>% 
+                      dplyr::anti_join(insig_causal_hits, by = c("driver_gene", "sl_partner_gene"))
+
+```
 
 Plotting p-values for a given pair across different cancers.
 
 ```{r bubble_plot_2}
-hits_pancan <- read.delim("~/Downloads/Slidr_Results/Pan_cancer_8pc/Hit_List/SL_hits_pan_cancer.txt",stringsAsFactors = F)
+# hits_pancan <- read.delim("~/Downloads/Slidr_Results/Pan_cancer_8pc/Hit_List/SL_hits_pan_cancer.txt",stringsAsFactors = F)
+# 
+# load("~/Downloads/Slidr_Results/Pan_cancer_8pc/pancan.Rdata")
 
-load("~/Downloads/Slidr_Results/Pan_cancer_8pc/pancan.Rdata")
+load("~/Downloads/Slidr_Results/Pan_cancer_8pc/causal_res.RData")
+
+original_hits_pancan <- hits_pancan
+hits_pancan          <- filt_hits_pancan
 
 # create data frame for each pair with frequency of different celllines
 canc_type_df <- do.call(rbind.data.frame, lapply(1:nrow(hits_pancan), function(x){
@@ -292,12 +450,12 @@ q1 <- ggplot(summary_df, aes(y=canc_type, x=sl_pairs, size = -log(as.numeric(as.
             legend.title = element_text(angle=0, size=15,colour="#525252"),
             legend.text = element_text(size=13,colour="#525252"),
             legend.key.size = unit(0.75, "cm")) +
-    scale_y_discrete(labels = c("Autonomic ganglia", "Bone", "Breast", "CNS", "Endometrium", "Blood", "Kidney", "Large intestine", "Liver", "Lung", "Oesophagus", "Ovary", "Pancreas", "Pleura", "Skin", "Soft tissue", "Stomach", "UADT", "Urinary tract") )
+    scale_y_discrete(labels = c("Autonomic ganglia", "Bone", "Breast", "CNS", "Endometrium", "Blood", "Kidney", "Large intestine", "Liver", "Lung", "Oesophagus", "Ovary", "Pancreas", "Skin", "Soft tissue", "Stomach", "UADT", "Urinary tract") )# No Pleura after causal filtering
 
 # Using a heatmap to describe the p-values in each cancer type
 q2 <- ggplot(summary_df, aes(x = sl_pairs,y = canc_type)) +
         geom_tile(aes(fill = -log(as.numeric(as.character(mut_pvalue))))) +
-        scale_fill_viridis(option="D", begin = 0, end = 0.9, alpha = 0.9) +
+        scale_fill_viridis(option="D", begin = 0, end = 1, alpha = 0.9) +
         theme_bw() +
         ylab("Primary sites") +
         xlab("Driver and SL partner genes") +
@@ -315,7 +473,7 @@ q2 <- ggplot(summary_df, aes(x = sl_pairs,y = canc_type)) +
             #panel.border = element_blank()) +
         scale_y_discrete(labels = c("Autonomic ganglia", "Bone", "Breast", "CNS", "Endometrium", 
                                     "Blood", "Kidney", "Large intestine", "Liver", "Lung", "Oesophagus", 
-                                    "Ovary", "Pancreas", "Pleura", "Skin", "Soft tissue", "Stomach", "UADT", "Urinary tract") )
+                                    "Ovary", "Pancreas", "Skin", "Soft tissue", "Stomach", "UADT", "Urinary tract") ) # No Pleura after causal filtering
 
 
 ggsave(filename = "~/Downloads/Slidr_Results/Pan_cancer_8pc/SLpairs_canctype_8pc_bubblePlot.pdf", q1, width = 35, height = 9, units = "in")
@@ -388,116 +546,6 @@ for(i in 1:nrow(grouped_hits)){
 
 ```
 
-Causal inference 
-
-```{r causality}
-set.seed(478)
-hits_pancan <- read.delim("~/Downloads/Slidr_Results/Pan_cancer_8pc/Hit_List/SL_hits_pan_cancer.txt",stringsAsFactors = F)
-
-load("~/Downloads/Slidr_Results/Pan_cancer_8pc/pancan.Rdata")
-
-causal_hits <- data.frame("driver_gene" = character(), 
-                          "sl_partner_gene" = character(), 
-                          "fisher_comb_pval" = numeric())
-
-grouped_hits <- hits_pancan %>% 
-                dplyr::group_by(sl_partner_gene) %>% 
-                summarise(drivers = paste(driver_gene, collapse = ","))
-
-
-for(i in 1:nrow(grouped_hits)){
-  temp_drivers <- sapply(grouped_hits$drivers[i], function(x){strsplit(x,",")[[1]]})
-  if(length(temp_drivers) >= 2){ # running for two or more genes
-    # defining the causal df
-    sl_gene    <- grouped_hits$sl_partner_gene[i]
-    causal_df  <- t(pc_data$mutations[temp_drivers,])
-    causal_df  <- cbind.data.frame(t(pc_data$viabilities[sl_gene,rownames(causal_df)]), causal_df)
-    # To avoid confusion between driver and same gene as target
-    colnames(causal_df)[1]  <- "Viability"
-    causal_df[,"Viability"] <- 1 - binarize(causal_df[,"Viability"], threshold = median(causal_df[,"Viability"]))
-    colnames(causal_df)     <- gsub('-', "_", colnames(causal_df))
-    temp_drivers            <- gsub('-', "_", temp_drivers)
-    
-    
-    for(j in 1: length(temp_drivers)){
-      t_res <- NULL
-      for(k in 1:30){
-        # Shuffling the rows for matching
-        temp_df   <- causal_df[sample(1:nrow(causal_df)),]
-        # values of viabilities and treatment var
-        y         <- temp_df$Viability
-        tr_gene   <- temp_drivers[j]
-        # covariates
-        xvars     <- temp_drivers[-j]
-        table1    <- CreateTableOne(vars = xvars, 
-                                  strata = tr_gene, 
-                                  data = temp_df, 
-                                  test=FALSE)
-        #print(table1,smd=TRUE)
-      
-        # Propensity matching
-        psmodel <- glm(as.formula(paste0(tr_gene," ~" ,paste(xvars, collapse = " + "))),
-                     family = binomial(),
-                     data = temp_df)
-  
-        #create propensity score
-        pscore <- psmodel$fitted.values
-  
-        #do greedy matching on logit(PS) using Match with a caliper
-        logit   <- function(p) {log(p)-log(1-p)}
-        err_mes <- try(Match(Tr = temp_df[,tr_gene],
-                      M = 1,
-                      X = logit(pscore),
-                      replace = FALSE,
-                      caliper = 0, 
-                      estimand = "ATT"), silent = FALSE)
-        if(is.na(err_mes[[1]])){
-          t_res <- c(t_res,NaN)
-        }else{
-          psmatch <- Match(Tr = temp_df[,tr_gene],
-                          M = 1,
-                          X = logit(pscore),
-                          replace = FALSE,
-                          caliper = 0, 
-                          estimand = "ATT")
-          matched <- temp_df[unlist(psmatch[c("index.treated","index.control")]), ]
-  
-          #get standardized differences
-          matchedtab1<-CreateTableOne(vars=xvars, strata =tr_gene, 
-                                  data=matched, test = FALSE)
-          #print(matchedtab1, smd = TRUE)
-  
-          #outcome analysis
-          y_trt <- matched$Viability[matched[,tr_gene] == 1]
-          y_con <- matched$Viability[matched[,tr_gene] == 0]
-  
-          #pairwise difference
-          diff_y <- y_trt - y_con
-  
-          #paired t-test
-          if(class(try(t.test(diff_y))) == "try-error"){
-            t_res <- c(t_res,NaN)
-          }else
-            t_res <- c(t_res,t.test(diff_y)$p.value)
-        }
-        t_res <- t_res[!is.nan(t_res)]
-      # print(length(t_res))
-      # print(pchisq(-2 * sum(log(t_res)),
-      #          df = 2 * length(t_res),
-      #          lower.tail=FALSE))
-      
-        comb_pval <- pchisq(-2 * sum(log(t_res)),
-                            df = 2 * length(t_res),
-                            lower.tail = FALSE)
-      
-      }
-      causal_hits <- rbind.data.frame(causal_hits,
-                                      cbind.data.frame(tr_gene, sl_gene, comb_pval))
-    }
-  }
-  
-}
-```
 
 
 ```{r causality_2}
@@ -697,6 +745,8 @@ hits_pancan_truncate <- slidr::identifySLHits(canc_data = p53_truncate_data,
 hits_list <- list(All = hits_pancan$sl_partner_gene[hits_pancan$driver_gene == "TP53"],
                   Missense = hits_pancan_missense$sl_partner_gene[hits_pancan_missense$driver_gene == "TP53"],
                   Truncated = hits_pancan_truncate$sl_partner_gene[hits_pancan_truncate$driver_gene == "TP53"])
+
+hits_list <- lapply(hits_list, function(x){x[x != "TP53"]})
 
 cairo_pdf("~/Downloads/Slidr_Results/TP53/upset_hits.pdf", width = 6, height = 4)
 upset(fromList(hits_list),

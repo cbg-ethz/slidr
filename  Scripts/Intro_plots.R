@@ -3,6 +3,7 @@ library(ggplot2)
 library(gridBase)
 library(dplyr)
 library(cowplot)
+library(reshape2)
 
 # Circular bar plot
 
@@ -206,8 +207,11 @@ ggsave(v, filename = paste0("/Volumes/beerenwinkel/ssumana/Documents/ETH/CRISPR/
 row_1 <- plot_grid(NULL, b, labels = c("A","B"), nrow = 1, label_size = 13)
 row_2 <- plot_grid(NULL, p, q, labels = c("C","",""), rel_widths = c(0.05,0.45,1), nrow = 1, label_size = 13)
 row_3 <- plot_grid(NULL,v,NULL, labels = c("","",""), rel_widths = c(0.5,0.6,0.5), nrow = 1, label_size = 13)
-fin_plot <- plot_grid(row_1, row_2, NULL,row_3, nrow = 4, rel_heights = c(1,0.75,0.06,0.75))
+row_4 <- plot_grid(NULL, labels = c("D"), nrow = 1, label_size = 13)
+fin_plot <- plot_grid(row_1, row_2, NULL, row_3, row_4,
+                      nrow = 5,
+                      rel_heights = c(1,0.75,0.05,0.8,0.75))
 
-ggsave(fin_plot, filename = paste0("/Volumes/beerenwinkel/ssumana/Documents/ETH/CRISPR/SLIDR/Figures/finalPlot",Sys.Date(),".pdf"),
-       width = 11, height = 15)
+ggsave(fin_plot, filename = paste0("/Volumes/beerenwinkel/ssumana/Documents/ETH/CRISPR/SLIDR/Figures/finalPlot_intro",Sys.Date(),".pdf"),
+       width = 10, height = 16)
 

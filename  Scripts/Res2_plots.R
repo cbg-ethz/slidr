@@ -10,7 +10,7 @@ library(ggplotify)
 load("~/Downloads/Slidr_Results/ContCN/ProcessedData.Rdata")
 
 # Reading the hit list for 17 cancers
-hit_files <- list.files("~/Downloads/Slidr_Results/ContCN/Hit_List/", full.names = TRUE)
+hit_files   <- list.files("~/Downloads/Slidr_Results/ContCN/Hit_List/", full.names = TRUE)
 hits        <- lapply(hit_files, function(x){read.delim(x, stringsAsFactors = FALSE, sep = "\t")})
 names(hits) <- lapply(hit_files, function(x){sub("SL_hits_", "",strsplit(x, "\\/|\\.")[[1]][9])})
 hits        <- lapply(hits, function(x){ x %>% dplyr::filter(WT_pvalue >= 0.2)})
@@ -32,6 +32,11 @@ colnames(mut_freq_df) <- c("canc_type", "driver_gene", "freq")
 mut_freq_df <- mut_freq_df %>%
                 dplyr::filter(driver_gene %in% all_drivers)
 #mut_freq_df$canc_type <- factor(mut_freq_df$canc_type, levels = sort(levels(mut_freq_df$canc_type)))
+
+#Filtering out drivers specific only to 1 cancer type
+mut_freq_df <- mut_freq_df %>%
+                dplyr::group_by(driver_gene) %>%
+                dplyr::filter(n() > 1)
 
 # Plotting driver frequencies across cancer types
 a <- ggplot(mut_freq_df, aes(x = driver_gene, y = factor(canc_type)))+
@@ -55,8 +60,7 @@ a <- ggplot(mut_freq_df, aes(x = driver_gene, y = factor(canc_type)))+
             legend.text = element_text(size=10,colour="#525252"),
             legend.key.size = unit(0.6, "cm")) +
   scale_y_discrete(labels = c("Pancreas", "Lung", "Liver", "Breast", "Skin", "Endometrium", "Thyroid", "Stomach",
-                              "Soft tissue", "Bone", "Ovary", "Blood", "Kidney", "CNS", "Oesophagus", "Urinary tract",
-                              "Large intestine"))
+                              "Bone", "Ovary", "Blood", "Kidney", "CNS", "Oesophagus", "Urinary tract", "Large intestine"))
 
 
 # Chord diagram
@@ -122,11 +126,11 @@ lgd <- get_legend(ggplot(cs_hits, aes(mut_qvalue, color = Type, fill = Type)) +
                     scale_color_manual(values = color_sites, name = "Primary site"))
 
 row_1 <- plot_grid(a, labels = c("A"),  nrow = 1, label_size = 13)
-row_2 <- plot_grid(b, lgd, NULL, labels = c("B","",""), rel_widths = c(0.3,0.0001,0.5), nrow = 1, label_size = 13)
+row_2 <- plot_grid(b, lgd, NULL, labels = c("B","",""), rel_widths = c(0.3,0.005,0.2), nrow = 1, label_size = 13)
 fin_plot <- plot_grid(row_1, row_2,
                       nrow = 2,
                       ncol = 1,
                       rel_heights = c(1,1.2))
 
 ggsave(fin_plot, filename = paste0("/Volumes/bsse_group_beerenwinkel/ssumana/Documents/ETH/CRISPR/SLIDR/Figures/finalPlot_res2",Sys.Date(),".pdf"),
-       width = 24, height = 12)
+       width = 12, height = 12.5)
