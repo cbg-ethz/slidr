@@ -202,6 +202,7 @@ prepareMutMat <- function(x, driver_genes, samples, all_cancers_mut_df){
 #' @param all_cancers_mut_df MAF file from CCLE
 #' @param CN_df copy number dataframe from CCLE
 #' @param gistic Logical variable checking if copy number is based on Gistic. Default = FALSE
+#' @param top_drivers vector of driver genes of interest. Default = NULL
 #' @param CN_Thr threshold for using CN data. Values: 0 = Homozygous and heterozygous deletions ; 1 = Homozygous deletions only; 2 = No copy number used (default)
 #' @param minNrcelllines lower bound of number of cell lines. Default = 5
 #' @param meta_data information on different sub types for each primary site
@@ -218,7 +219,7 @@ prepareMutMat <- function(x, driver_genes, samples, all_cancers_mut_df){
 #' @export
 #'
 #'
-prepareDataObjects <- function(data, x, fdr = 0.05, min_Nmut = 2, all_cancers_mut_df, CN_df, gistic = FALSE,
+prepareDataObjects <- function(data, x, fdr = 0.05, min_Nmut = 2, all_cancers_mut_df, CN_df, gistic = FALSE, top_drivers = NULL,
                                CN_Thr = 2, minNrcelllines = 5, celllines, meta_data, essential_genes = NULL) {
 
   # Choosing only cellines for cancer of interest x
@@ -228,15 +229,15 @@ prepareDataObjects <- function(data, x, fdr = 0.05, min_Nmut = 2, all_cancers_mu
     return(NULL)
   }else{
 
-    # TODO add an if statement to check if the top drivers is null or users can give their own genes
-    # Getting the top driver genes
+    # Getting the top driver genes from TCGA maf files
     top_drivers <- NULL
-
-    for(i in unlist(strsplit(subset(meta_data, Primary_site == x, Driver_gene_file, drop = TRUE),"[;]"))){
-      # Loading driver mutation list from FireBrowse
-      driver_genes <- read.delim(paste(base_folder, "DriverGenes/",i,sep=""),stringsAsFactors = F)
-      # Choosing top driver genes with threshold of q <= fdr
-      top_drivers <- c(top_drivers, driver_genes $gene[driver_genes $q <= fdr])
+    if(is.null(top_drivers)){
+      for(i in unlist(strsplit(subset(meta_data, Primary_site == x, Driver_gene_file, drop = TRUE),"[;]"))){
+        # Loading driver mutation list from FireBrowse
+        driver_genes <- read.delim(paste(base_folder, "DriverGenes/",i,sep=""),stringsAsFactors = F)
+        # Choosing top driver genes with threshold of q <= fdr
+        top_drivers <- c(top_drivers, driver_genes$gene[driver_genes$q <= fdr])
+      }
     }
     top_drivers <- unique(top_drivers)
 

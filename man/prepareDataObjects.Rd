@@ -5,8 +5,8 @@
 \title{Prepare the data object required for downstream analysis}
 \usage{
 prepareDataObjects(data, x, fdr = 0.05, min_Nmut = 2, all_cancers_mut_df,
-  CN_df, gistic = FALSE, CN_Thr = 2, minNrcelllines = 5, celllines,
-  meta_data, essential_genes = NULL)
+  CN_df, gistic = FALSE, top_drivers = NULL, CN_Thr = 2,
+  minNrcelllines = 5, celllines, meta_data, essential_genes = NULL)
 }
 \arguments{
 \item{data}{input data frame of cell line viabilities for different gene knockdowns}
@@ -22,6 +22,8 @@ prepareDataObjects(data, x, fdr = 0.05, min_Nmut = 2, all_cancers_mut_df,
 \item{CN_df}{copy number dataframe from CCLE}
 
 \item{gistic}{Logical variable checking if copy number is based on Gistic. Default = FALSE}
+
+\item{top_drivers}{vector of driver genes of interest. Default = NULL}
 
 \item{CN_Thr}{threshold for using CN data. Values: 0 = Homozygous and heterozygous deletions ; 1 = Homozygous deletions only; 2 = No copy number used (default)}
 
