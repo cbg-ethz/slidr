@@ -65,10 +65,11 @@ a <- ggplot(mut_freq_df, aes(x = driver_gene, y = factor(canc_type)))+
 
 # Chord diagram
 cs_hits <- read.delim("~/Downloads/Slidr_Results/CanSpecific_literature.txt", stringsAsFactors = FALSE)
+cs_hits$sl_partner_gene <- sapply(cs_hits$sl_partner_gene, function(x){strsplit(x, ",")[[1]][1]})
 cs_mat <- reshape2::acast(cs_hits, driver_gene~sl_partner_gene, value.var="mut_qvalue")
 cs_mat[is.na(cs_mat)] <- 0
 cs_mat[cs_mat>0]      <- 1
-colnames(cs_mat) <- sapply(colnames(cs_mat), function(x){strsplit(x, ",")[[1]][1]})
+# colnames(cs_mat) <- sapply(colnames(cs_mat), function(x){strsplit(x, ",")[[1]][1]})
 
 color_sites <- c("#CC99BB", "#771155", "#77AADD", "#44AA77",
                   "#114477", "#DD7788", "#44AAAA", "#774411",
@@ -79,6 +80,7 @@ names(color_sites) <- sort(unique(cs_hits$Type))
 
 color_df <- cbind.data.frame(cs_hits$driver_gene, cs_hits$sl_partner_gene, color_sites[cs_hits$Type])
 
+circos.par(start.degree = 270)
 # Basic chord diagram without the labels
 chordDiagram(cs_mat,
              annotationTrack = "grid",
@@ -86,6 +88,7 @@ chordDiagram(cs_mat,
              preAllocateTracks = 1,
              grid.col = "#525252",
              grid.border = "#525252",
+             transparency = 0.5,
              col = color_df)
 # Adding vertical labels track
 circos.trackPlotRegion(track.index = 1, panel.fun = function(x, y){
@@ -126,7 +129,7 @@ lgd <- get_legend(ggplot(cs_hits, aes(mut_qvalue, color = Type, fill = Type)) +
                     scale_color_manual(values = color_sites, name = "Primary site"))
 
 row_1 <- plot_grid(a, labels = c("A"),  nrow = 1, label_size = 13)
-row_2 <- plot_grid(b, lgd, NULL, labels = c("B","",""), rel_widths = c(0.3,0.005,0.2), nrow = 1, label_size = 13)
+row_2 <- plot_grid(b, lgd, NULL, labels = c("B","","C"), rel_widths = c(0.3,0.005,0.2), nrow = 1, label_size = 13)
 fin_plot <- plot_grid(row_1, row_2,
                       nrow = 2,
                       ncol = 1,

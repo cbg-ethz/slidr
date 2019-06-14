@@ -5,9 +5,8 @@ library(dplyr)
 library(cowplot)
 library(reshape2)
 
-# Circular bar plot
-
-load("/Volumes//beerenwinkel/ssumana/Documents/ETH/CRISPR/SLIDR/Plots/2018/13Aug2018/Pan_cancer_8pc/pancan.Rdata")
+# Regular bar plot
+load("/Volumes/bsse_group_beerenwinkel/ssumana/Documents/ETH/CRISPR/SLIDR/Plots/2018/13Aug2018/Pan_cancer_8pc/pancan.Rdata")
 
 sites_vec   <- sapply(pc_celllines, function(x){paste(strsplit(x, "_")[[1]][-1], collapse = " ")})
 sites_tab   <- table(sites_vec)
@@ -22,53 +21,99 @@ label_data$sites <- c("Autonomic ganglia", "Bone", "Breast", "CNS", "Endometrium
                       "Blood", "Kidney", "Large intestine", "Liver", "Lung", "Oesophagus",
                       "Ovary", "Pancreas", "Pleura", "Skin", "Soft tissue", "Stomach", "Thyroid",
                       "UADT", "Urinary tract")
+sites_df$labels <- c("Autonomic ganglia", "Bone", "Breast", "CNS", "Endometrium",
+                     "Blood", "Kidney", "Large intestine", "Liver", "Lung", "Oesophagus",
+                     "Ovary", "Pancreas", "Pleura", "Skin", "Soft tissue", "Stomach", "Thyroid",
+                     "UADT", "Urinary tract")
 
-# calculate the ANGLE of the labels
-number_of_bar = nrow(label_data)
-angle = 90 - 360 * (label_data$id - 0.5)/number_of_bar
-
-# calculate the alignment of labels: right or left
-label_data$hjust <- ifelse( angle < -90, 1, 0)
-# flip angle BY to make them readable
-label_data$angle <- ifelse(angle < -90, angle+180, angle)
-
-b <- ggplot(sites_df, aes(x=individual, y=value)) +
+b1 <- ggplot(sites_df, aes(x = reorder(labels,-value), y=value)) +
   geom_bar(stat="identity", fill=alpha("#055C95", 0.6)) +
-  ylim(-30,80) +
-  theme_minimal() +
-  theme(axis.text = element_blank(),
-        axis.title = element_blank(),
-        panel.grid = element_blank(),
-        plot.margin = unit(rep(-1,4), "cm")) +
-  coord_polar(start = 0) +
-  geom_text(data = label_data,
-            aes(x = id,
-                y = value + 12,
-                label = sites,
-                hjust = hjust),
-            color = "#525252",
-            alpha = 0.8,
-            fontface = "bold",
-            size = 3.5,
-            angle = label_data$angle,
-            inherit.aes = FALSE) +
-  geom_text(data = label_data,
-            aes(x = id,
-                y = value + 2 ,
-                label = value,
-                hjust = hjust),
-            color = "#525252",
-            alpha = 0.8,
-            #fontface = "bold",
-            size = 3.5,
-            angle = label_data$angle,
-            inherit.aes = FALSE)
+  theme_bw() +
+  xlab("Primary sites") +
+  ylab("Frequency") +
+  theme(panel.grid= element_blank(),
+        panel.border = element_blank(),
+        axis.ticks = element_line(size=0.5,color="#525252"),
+        axis.line = element_line(colour="#525252"),
+        axis.text.y=element_text(angle=0, vjust=0.5, hjust=1,size=10,colour="#525252"),
+        axis.text.x=element_text(angle=90, vjust=0.5, hjust=1,size=10,colour="#525252"),
+        axis.title.x=element_text(angle=0,size=12,face="bold",vjust=0,colour="#525252"),
+        axis.title.y=element_text(angle=90, size=12,face="bold",vjust=0,colour="#525252"),
+        strip.text.x = element_text(size = 10, colour = "#525252", face = "bold"),
+        strip.background = element_blank(),
+        legend.position = "none")
 
-ggsave(b, filename = paste0("/Volumes/beerenwinkel/ssumana/Documents/ETH/CRISPR/SLIDR/Figures/primarySites",Sys.Date(),".pdf"),
+ggsave(b1, filename = paste0("/Volumes/bsse_group_beerenwinkel/ssumana/Documents/ETH/CRISPR/SLIDR/Figures/primarySites",Sys.Date(),".pdf"),
        width = 5.5, height = 5.5)
 
+rm(list = setdiff(ls(), "b1"))
 
-rm(list = setdiff(ls(), "b"))
+# # Circular bar plot
+#
+# load("/Volumes/bsse_group_beerenwinkel/ssumana/Documents/ETH/CRISPR/SLIDR/Plots/2018/13Aug2018/Pan_cancer_8pc/pancan.Rdata")
+#
+# sites_vec   <- sapply(pc_celllines, function(x){paste(strsplit(x, "_")[[1]][-1], collapse = " ")})
+# sites_tab   <- table(sites_vec)
+# sites_tab   <- sites_tab[sites_tab > 2]
+# sites_df    <- as.data.frame(sites_tab)
+# colnames(sites_df) <- c("individual", "value")
+# sites_df$id <- 1:nrow(sites_df)
+#
+#
+# label_data <- sites_df
+# label_data$sites <- c("Autonomic ganglia", "Bone", "Breast", "CNS", "Endometrium",
+#                       "Blood", "Kidney", "Large intestine", "Liver", "Lung", "Oesophagus",
+#                       "Ovary", "Pancreas", "Pleura", "Skin", "Soft tissue", "Stomach", "Thyroid",
+#                       "UADT", "Urinary tract")
+#
+# # calculate the ANGLE of the labels
+# number_of_bar = nrow(label_data)
+# angle = 90 - 360 * (label_data$id - 0.5)/number_of_bar
+#
+# # calculate the alignment of labels: right or left
+# label_data$hjust <- ifelse( angle < -90, 1, 0)
+# # flip angle BY to make them readable
+# label_data$angle <- ifelse(angle < -90, angle+180, angle)
+#
+# b2 <- ggplot(sites_df, aes(x=individual, y=value)) +
+#   geom_bar(stat="identity", fill=alpha("#055C95", 0.6)) +
+#   ylim(-30,80) +
+#   theme_minimal() +
+#   theme(axis.text = element_blank(),
+#         axis.title = element_blank(),
+#         panel.grid = element_blank(),
+#         plot.margin = unit(rep(-1,4), "cm")) +
+#   coord_polar(start = 0) +
+#   geom_text(data = label_data,
+#             aes(x = id,
+#                 y = value + 12,
+#                 label = sites,
+#                 hjust = hjust),
+#             color = "#525252",
+#             alpha = 0.8,
+#             fontface = "bold",
+#             size = 3.5,
+#             angle = label_data$angle,
+#             inherit.aes = FALSE) +
+#   geom_text(data = label_data,
+#             aes(x = id,
+#                 y = value + 2 ,
+#                 label = value,
+#                 hjust = hjust),
+#             color = "#525252",
+#             alpha = 0.8,
+#             #fontface = "bold",
+#             size = 3.5,
+#             angle = label_data$angle,
+#             inherit.aes = FALSE)
+#
+# ggsave(b2, filename = paste0("/Volumes/bsse_group_beerenwinkel/ssumana/Documents/ETH/CRISPR/SLIDR/Figures/primarySites",Sys.Date(),".pdf"),
+#        width = 5.5, height = 5.5)
+#
+#
+# rm(list = setdiff(ls(), "b2"))
+
+
 set.seed(496)
 
 n_celllines <- 10
@@ -115,7 +160,7 @@ p <- ggplot(mut_df, aes(Var1, Var2)) +
 
 p <- ggdraw(p) + draw_label("*", x = 0.32, y = 0.96, colour = "#098CCB", size = 15)
 # p <- ggdraw(p) + draw_label("*", x = 0.29, y = 0.96, colour = "#098CCB", size = 15)
-# ggsave(p, filename = paste0("/Volumes/beerenwinkel/ssumana/Documents/ETH/CRISPR/SLIDR/Figures/mutations",Sys.Date(),".pdf"),
+# ggsave(p, filename = paste0("/Volumes/bsse_group_beerenwinkel/ssumana/Documents/ETH/CRISPR/SLIDR/Figures/mutations",Sys.Date(),".pdf"),
 #        width = 3.8, height = 6)
 
 
@@ -149,13 +194,13 @@ q <- ggplot(per_df, aes(Var1, Var2)) +
   scale_fill_viridis(option="viridis",begin = 0.2,end = 0.85,alpha = 0.75) +
   scale_color_manual(values = c("#525252","white"), guide = FALSE)
 
-# pdf(file = paste0("/Volumes/beerenwinkel/ssumana/Documents/ETH/CRISPR/SLIDR/Figures/perturbations",Sys.Date(),".pdf"), width = 10, height = 6)
+# pdf(file = paste0("/Volumes/bsse_group_beerenwinkel/ssumana/Documents/ETH/CRISPR/SLIDR/Figures/perturbations",Sys.Date(),".pdf"), width = 10, height = 6)
 # q
 # grid.text("*", x = unit(0.49, "npc"), y = unit(0.965, "npc"), gp=gpar(fontsize=22, col="#8F55E1"))
 # dev.off()
 
 q <- ggdraw(q) + draw_label("*", x = 0.485, y = 0.96, colour = "#7868B2", size = 15)
-#ggsave(q, filename = paste0("/Volumes/beerenwinkel/ssumana/Documents/ETH/CRISPR/SLIDR/Figures/perturbations",Sys.Date(),".pdf"),
+#ggsave(q, filename = paste0("/Volumes/bsse_group_beerenwinkel/ssumana/Documents/ETH/CRISPR/SLIDR/Figures/perturbations",Sys.Date(),".pdf"),
 #       width = 10, height = 6)
 
 
@@ -200,18 +245,19 @@ v <- ggplot(violin_df, aes(x=factor(class), y=value)) +
             fontface = "bold",
             size = 3.25)
 
-ggsave(v, filename = paste0("/Volumes/beerenwinkel/ssumana/Documents/ETH/CRISPR/SLIDR/Figures/violinPlot",Sys.Date(),".pdf"),
+ggsave(v, filename = paste0("/Volumes/bsse_group_beerenwinkel/ssumana/Documents/ETH/CRISPR/SLIDR/Figures/violinPlot",Sys.Date(),".pdf"),
        width = 7, height = 7)
 
-
-row_1 <- plot_grid(NULL, b, labels = c("A","B"), nrow = 1, label_size = 13)
+row_1 <- plot_grid(NULL, b1, labels = c("A","B"), rel_widths = c(0.4,0.6), nrow = 1, label_size = 13)
+# row_1 <- plot_grid(NULL, b2, labels = c("A","B"), nrow = 1, label_size = 13) # circular bar plot
 row_2 <- plot_grid(NULL, p, q, labels = c("C","",""), rel_widths = c(0.05,0.45,1), nrow = 1, label_size = 13)
 row_3 <- plot_grid(NULL,v,NULL, labels = c("","",""), rel_widths = c(0.5,0.6,0.5), nrow = 1, label_size = 13)
 row_4 <- plot_grid(NULL, labels = c("D"), nrow = 1, label_size = 13)
 fin_plot <- plot_grid(row_1, row_2, NULL, row_3, row_4,
                       nrow = 5,
-                      rel_heights = c(1,0.75,0.05,0.8,0.75))
+                      #rel_heights = c(1,0.75,0.05,0.8,0.75))
+                      rel_heights = c(0.75,0.75,0.05,0.8,0.75))
 
-ggsave(fin_plot, filename = paste0("/Volumes/beerenwinkel/ssumana/Documents/ETH/CRISPR/SLIDR/Figures/finalPlot_intro",Sys.Date(),".pdf"),
-       width = 10, height = 16)
+ggsave(fin_plot, filename = paste0("/Volumes/bsse_group_beerenwinkel/ssumana/Documents/ETH/CRISPR/SLIDR/Figures/finalPlot_intro",Sys.Date(),".pdf"),
+       width = 10, height = 15)
 
