@@ -57,13 +57,13 @@ bp_summary_df <- hits_pancan %>% filter(sl_partner_gene %in% confounders)
 # removing long names for better aesthetics
 bp_summary_df$sl_partner_gene <- unlist(lapply(bp_summary_df$sl_partner_gene,
                                         function(x){strsplit(x, ",")[[1]][1]}))
-b <- ggplot(bp_summary_df, aes(x=driver_gene, y=sl_partner_gene, size = -log(mut_pvalue, base = 10))) +
+b <- ggplot(bp_summary_df, aes(x=driver_gene, y=sl_partner_gene, size = -log10(mut_pvalue))) +
   geom_point(fill = "#055C95",color="#055C95", alpha=0.45) +
   scale_size_continuous(range=c(2, 10)) +
   theme_bw() +
   xlab("Driver genes") +
   ylab("SL partner genes") +
-  labs(size = "-log(p-value)")+
+  labs(size = "-log10(p-value)")+
   theme(panel.grid.major = element_line(size = 0.1),
         panel.grid.minor = element_blank(),
         axis.ticks = element_line(size=0.5,color="#525252"),
@@ -85,13 +85,13 @@ summary_df$sl_partner_gene <- unlist(lapply(summary_df$sl_partner_gene,
                                                function(x){strsplit(x, ",")[[1]][1]}))
 
 d <- ggplot(summary_df, aes(x = sl_partner_gene, y = canc_type)) +
-  geom_tile(aes(fill = -log(as.numeric(as.character(mut_pvalue))))) +
+  geom_tile(aes(fill = -log10(as.numeric(as.character(mut_pvalue))))) +
   facet_grid(.~ factor(driver_gene), scales = "free_x", space = "free_x") +
   scale_fill_viridis(option="D", begin = 0, end = 1, alpha = 0.9) +
   theme_bw() +
   ylab("Primary sites") +
   xlab("SL partner genes") +
-  labs(fill = "-log(p-value)")+
+  labs(fill = "-log10(p-value)")+
   ggtitle("Driver genes") +
   theme(panel.grid= element_blank(),
         axis.ticks = element_line(size=0.5,color="#525252"),
@@ -123,7 +123,7 @@ fin_plot <- plot_grid(row_1, row_2, row_3,
                       align = "v",
                       axis = 'l')
 
-ggsave(fin_plot, filename = paste0("/Volumes/bsse_group_beerenwinkel/ssumana/Documents/ETH/CRISPR/SLIDR/Figures/finalPlot_res1",Sys.Date(),".pdf"),
+ggsave(fin_plot, filename = paste0("/Volumes/beerenwinkel/ssumana/Documents/ETH/CRISPR/SLIDR/Figures/finalPlot_res1",Sys.Date(),".pdf"),
        width = 20.5, height = 20.5)
 # ggsave(fin_plot, filename = paste0("/Volumes/bsse_group_beerenwinkel/ssumana/Documents/ETH/CRISPR/SLIDR/Figures/finalPlot_res1",Sys.Date(),".png"),
 #        width = 20.5, height = 20.5)
