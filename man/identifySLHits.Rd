@@ -4,7 +4,7 @@
 \alias{identifySLHits}
 \title{Retrieve list of mutation-specific synthetic lethal partners for each type of cancer}
 \usage{
-identifySLHits(canc_data, qval_thresh = 1, path_results,
+identifySLHits(canc_data, qval_thresh = 1, path_results = NULL,
   WT_pval_thresh = 0.2)
 }
 \arguments{
@@ -12,7 +12,7 @@ identifySLHits(canc_data, qval_thresh = 1, path_results,
 
 \item{qval_thresh}{The number of false positives allowed after correction. Default = 1}
 
-\item{path_results}{The path to where the results should be stored}
+\item{path_results}{The path to where the results should be stored. Default working directory.}
 
 \item{WT_pval_thresh}{Discard SL pairs with WT p-values less than this threshold. Default = 0.2
 Required by `plotSLBoxplot` function}

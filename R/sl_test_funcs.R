@@ -31,16 +31,20 @@ IH_CDF <- function(x, n) {
 #' @import rDGIdb
 #' @param canc_data Processed data object for a given cancer type
 #' @param qval_thresh The number of false positives allowed after correction. Default = 1
-#' @param path_results The path to where the results should be stored
+#' @param path_results The path to where the results should be stored. Default working directory.
 #' @param WT_pval_thresh Discard SL pairs with WT p-values less than this threshold. Default = 0.2
 #' Required by `plotSLBoxplot` function
 #' @return a dataframe of driver gene with its corresponding SL partner, the p-value in WT samples,
 #' p-value in mutated samples and the corresponding value after correction.
 #' @export
 
-identifySLHits <- function(canc_data, qval_thresh = 1, path_results, WT_pval_thresh = 0.2){
+identifySLHits <- function(canc_data, qval_thresh = 1, path_results = NULL, WT_pval_thresh = 0.2){
 
-  output_folder = paste(path_results,"Hit_List/", sep = "")
+  if(is.null(path_results)){
+    output_folder = paste(getwd(),"/Hit_List/", sep = "")
+  }else
+    output_folder = paste(path_results,"Hit_List/", sep = "")
+
   if(!dir.exists(output_folder)){
     dir.create(output_folder, recursive = TRUE, showWarnings = TRUE)
   }
@@ -62,23 +66,33 @@ identifySLHits <- function(canc_data, qval_thresh = 1, path_results, WT_pval_thr
     mut_celllines <- colnames(mutations)[which(mutations[driver_gene,] == 1)]
 
     # Ranking the viabilities of all genes in the mutated cell lines
-    all_viabilities_ranks <- apply(viabilities[, mut_celllines], 2, rank)
-    # Normalised rank sum
-    genes_rank_sum        <- sort(apply(all_viabilities_ranks, 1, sum))/nrow(viabilities)
+    mut_viabilities_ranks <- apply(viabilities[, mut_celllines], 2, rank)
+    # Normalised rank sum for mutated cell lines
+    genes_rank_sum_mut    <- sort(apply(mut_viabilities_ranks, 1, sum))/nrow(viabilities)
+
+    # Ranking the viabilities of all genes in the WT cell lines
+    WT_viabilities_ranks <- apply(viabilities[, WT_celllines], 2, rank)
+    # Normalised rank sum for WT cell lines
+    genes_rank_sum_WT    <- sort(apply(WT_viabilities_ranks, 1, sum))/nrow(viabilities)
 
     # Number of mutated cases and the maximum rank or total number of samples
     n        <- length(mut_celllines)
     n_tests  <- nrow(viabilities) * nrow(mutations)
-    max_rank <- max(all_viabilities_ranks)
+    max_rank <- max(mut_viabilities_ranks)
+    # Number of WT cases
+    m        <- length(WT_celllines)
 
+    # Initialize
     k = 1
-    mut_pvalue <- IH_CDF(genes_rank_sum[k], n)
+    mut_pvalue <- IH_CDF(genes_rank_sum_mut[k], n)
+    # Perform tests until a given threshold on number of acceptable FP
     while((mut_pvalue * n_tests) < qval_thresh && k <= max_rank){
-      sl_partner_gene <- names(genes_rank_sum[k])
-      mut_qvalue      <- mut_pvalue * n_tests # Correcting for multiple testing by adjusting FPR
-      WT_viabilities  <- as.numeric(as.character(viabilities[sl_partner_gene,WT_celllines]))
-      WT_pvalue       <- min(wilcox.test(WT_viabilities, mu = 0, alternative = "two.sided")$p.value,
-                             t.test(WT_viabilities, mu = 0, alternative = "two.sided")$p.value) # Testing WT cell lines for sl partner gene
+      sl_partner_gene <- names(genes_rank_sum_mut[k])
+      mut_qvalue      <- mut_pvalue * n_tests # Accounting for multiple testing by adjusting p-value
+      # IH test for SL partner gene in WT cell lines
+      WT_cdf          <- IH_CDF(genes_rank_sum_WT[sl_partner_gene], m)
+      WT_pvalue       <- 2 * min(WT_cdf, 1-WT_cdf)
+
       results         <- rbind.data.frame(results,
                                           cbind(driver_gene,
                                                 sl_partner_gene,
@@ -87,7 +101,7 @@ identifySLHits <- function(canc_data, qval_thresh = 1, path_results, WT_pval_thr
                                                 mut_qvalue))
       k               <- k + 1
       if(k <= max_rank){
-        mut_pvalue      <- IH_CDF(genes_rank_sum[k], n) # Performing Irwin Hall test for next gene
+        mut_pvalue <- IH_CDF(genes_rank_sum_mut[k], n) # Performing Irwin Hall test for next gene
       }
     }
 
@@ -101,19 +115,25 @@ identifySLHits <- function(canc_data, qval_thresh = 1, path_results, WT_pval_thr
   results$sl_partner_gene <- as.character(results$sl_partner_gene)
   results                 <- results[order(results$mut_pvalue),]
   drugs_df                <- detailedResults(queryDGIdb(unique(results$sl_partner_gene)))
-  drugs_df                <- drugs_df %>%
-                             dplyr::group_by(Gene) %>%
-                             dplyr::summarise(Drugs  = paste(Drug, collapse = ","))
-  drugs_df$Gene           <- as.character(drugs_df$Gene)
-  results                 <- dplyr::left_join(results, drugs_df, by = c("sl_partner_gene" = "Gene"))
+  if(nrow(drugs_df) > 0){
+    drugs_df                <- drugs_df %>%
+      dplyr::group_by(Gene) %>%
+      dplyr::summarise(Drugs  = paste(Drug, collapse = ","))
+    drugs_df$Gene           <- as.character(drugs_df$Gene)
+    results                 <- dplyr::left_join(results, drugs_df, by = c("sl_partner_gene" = "Gene"))
+  }
 
-  slidr::plotSLBoxplot(canc_data = canc_data,
-                       hits_df = results,
-                       path_results = path_results,
-                       WT_pval_thresh = WT_pval_thresh)
   write.table(results,
               file = paste(output_folder, "SL_hits_", canc_data$primary_site, ".txt", sep = ""),
               quote = F, row.names = F, sep = "\t")
+
+  if(!is.null(canc_data$CNalterations) && !is.null(canc_data$mutation_annot)){
+    slidr::plotSLBoxplot(canc_data = canc_data,
+                         hits_df = results,
+                         path_results = path_results,
+                         WT_pval_thresh = WT_pval_thresh)
+  }
+
   return(results)
 }
 
@@ -139,23 +159,28 @@ getPval <- function(canc_data, driver_gene, sl_partner_gene){
   mut_celllines <- colnames(mutations)[which(mutations[driver_gene,] == 1)]
 
   # Ranking the viabilities of all genes in the mutated cell lines
-  all_viabilities_ranks <- apply(viabilities[, mut_celllines], 2, rank)
-  # Normalised rank sum
-  genes_rank_sum        <- sort(apply(all_viabilities_ranks, 1, sum))/nrow(viabilities)
+  mut_viabilities_ranks <- apply(viabilities[, mut_celllines], 2, rank)
+  # Normalised rank sum for mutated cell lines
+  genes_rank_sum_mut    <- sort(apply(mut_viabilities_ranks, 1, sum))/nrow(viabilities)
 
-  # Number of mutated cases and the maximum rank or total number of samples
+  # Ranking the viabilities of all genes in the WT cell lines
+  WT_viabilities_ranks <- apply(viabilities[, WT_celllines], 2, rank)
+  # Normalised rank sum for WT cell lines
+  genes_rank_sum_WT    <- sort(apply(WT_viabilities_ranks, 1, sum))/nrow(viabilities)
+
+  # Number of mutated cases and index of sl parnter in ranked list
   n        <- length(mut_celllines)
-  max_rank <- max(all_viabilities_ranks)
-  k        <- which(names(genes_rank_sum) == sl_partner_gene)
+  # Number of WT cases and index of sl parnter in ranked list
+  m        <- length(WT_celllines)
 
-  mut_pvalue      <- IH_CDF(genes_rank_sum[k], n)
-  WT_viabilities  <- as.numeric(as.character(viabilities[sl_partner_gene,WT_celllines]))
-  WT_pvalue       <- min(wilcox.test(WT_viabilities, mu = 0, alternative = "two.sided")$p.value,
-                         t.test(WT_viabilities, mu = 0, alternative = "two.sided")$p.value)
+  # IH test for SL partner gene in mutated cell lines
+  mut_pvalue      <- IH_CDF(genes_rank_sum_mut[sl_partner_gene], n)
+  # IH test for SL partner gene in WT cell lines
+  WT_cdf          <- IH_CDF(genes_rank_sum_WT[sl_partner_gene], m)
+  WT_pvalue       <- 2 * min(WT_cdf, 1-WT_cdf)
 
   cbind.data.frame(driver_gene,
-                    sl_partner_gene,
-                    WT_pvalue,
-                    mut_pvalue)
+                   sl_partner_gene,
+                   WT_pvalue,
+                   mut_pvalue)
 }
-
