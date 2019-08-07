@@ -40,10 +40,13 @@ test_that("identifySLHits function works correctly", {
 
 test_that("getPval works correctly", {
   expect_equal(getPval(test_data, "MG1", "PG8")$mut_pvalue,
-               identifySLHits(test_data)$mut_pvalue)
+               identifySLHits(test_data)$mut_pvalue, tolerance = 1e-5)
   expect_equal(getPval(test_data, "MG1", "PG8")$WT_pvalue,
-               identifySLHits(test_data)$WT_pvalue)
-  expect_equal(getPval(test_data, "MG4", "PG3658")$mut_pvalue, IH_CDF(0.1295, 3)) # 0.1295 is sum of ranks for PG3658 in MG4 mutated cell lines
+               identifySLHits(test_data)$WT_pvalue, tolerance = 1e-5)
+  expect_equal(getPval(test_data, "MG4", "PG3658")$mut_pvalue,
+               IH_CDF(0.1295, 3),
+               tolerance = 1e-5) # 0.1295 is sum of ranks for PG3658 in MG4 mutated cell lines
   expect_equal(getPval(test_data, "MG4", "PG3658")$WT_pvalue,
-               2 * min(IH_CDF(4.689, 7), 1 - IH_CDF(4.689, 7)))# 4.689 is sum of ranks for PG3658 in MG4 WT cell lines
+               2 * min(IH_CDF(4.689, 7), 1 - IH_CDF(4.689, 7)),
+               tolerance = 1e-5)# 4.689 is sum of ranks for PG3658 in MG4 WT cell lines
 })
