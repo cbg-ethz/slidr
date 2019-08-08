@@ -13,7 +13,7 @@ load("~/Downloads/Slidr_Results_new/ContCN/ProcessedData.Rdata")
 # hit_files   <- list.files("~/Downloads/Slidr_Results/ContCN/Hit_List/", full.names = TRUE)
 # hits        <- lapply(hit_files, function(x){read.delim(x, stringsAsFactors = FALSE, sep = "\t")})
 # names(hits) <- lapply(hit_files, function(x){sub("SL_hits_", "",strsplit(x, "\\/|\\.")[[1]][9])})
-hits        <- lapply(hits, function(x){ x %>% dplyr::filter(WT_pvalue > 0.1)})
+hits        <- lapply(hits, function(x){ x %>% dplyr::filter(WT_pvalue >= 0.1)})
 hits        <- hits[Primary_sites]
 
 # A vector of all the drivers
