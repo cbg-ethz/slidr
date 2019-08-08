@@ -7,13 +7,13 @@ library(viridis)
 library(circlize)
 library(ggplotify)
 
-load("~/Downloads/Slidr_Results/ContCN/ProcessedData.Rdata")
+load("~/Downloads/Slidr_Results_new/ContCN/ProcessedData.Rdata")
 
-# Reading the hit list for 17 cancers
-hit_files   <- list.files("~/Downloads/Slidr_Results/ContCN/Hit_List/", full.names = TRUE)
-hits        <- lapply(hit_files, function(x){read.delim(x, stringsAsFactors = FALSE, sep = "\t")})
-names(hits) <- lapply(hit_files, function(x){sub("SL_hits_", "",strsplit(x, "\\/|\\.")[[1]][9])})
-hits        <- lapply(hits, function(x){ x %>% dplyr::filter(WT_pvalue >= 0.2)})
+# # Reading the hit list for 17 cancers
+# hit_files   <- list.files("~/Downloads/Slidr_Results/ContCN/Hit_List/", full.names = TRUE)
+# hits        <- lapply(hit_files, function(x){read.delim(x, stringsAsFactors = FALSE, sep = "\t")})
+# names(hits) <- lapply(hit_files, function(x){sub("SL_hits_", "",strsplit(x, "\\/|\\.")[[1]][9])})
+hits        <- lapply(hits, function(x){ x %>% dplyr::filter(WT_pvalue > 0.1)})
 hits        <- hits[Primary_sites]
 
 # A vector of all the drivers
@@ -64,7 +64,7 @@ a <- ggplot(mut_freq_df, aes(x = driver_gene, y = factor(canc_type)))+
 
 
 # Chord diagram
-cs_hits <- read.delim("~/Downloads/Slidr_Results/CanSpecific_literature.txt", stringsAsFactors = FALSE)
+cs_hits <- read.delim("~/Downloads/Slidr_Results_new/CanSpecific_literature.txt", stringsAsFactors = FALSE)
 cs_hits$sl_partner_gene <- sapply(cs_hits$sl_partner_gene, function(x){strsplit(x, ",")[[1]][1]})
 cs_mat <- reshape2::acast(cs_hits, driver_gene~sl_partner_gene, value.var="mut_qvalue")
 cs_mat[is.na(cs_mat)] <- 0
@@ -80,6 +80,7 @@ names(color_sites) <- sort(unique(cs_hits$Type))
 
 color_df <- cbind.data.frame(cs_hits$driver_gene, cs_hits$sl_partner_gene, color_sites[cs_hits$Type])
 
+circos.clear()
 circos.par(start.degree = 270)
 # Basic chord diagram without the labels
 chordDiagram(cs_mat,
@@ -135,5 +136,5 @@ fin_plot <- plot_grid(row_1, row_2,
                       ncol = 1,
                       rel_heights = c(1,1.2))
 
-ggsave(fin_plot, filename = paste0("/Volumes/bsse_group_beerenwinkel/ssumana/Documents/ETH/CRISPR/SLIDR/Figures/finalPlot_res2",Sys.Date(),".pdf"),
+ggsave(fin_plot, filename = paste0("/Volumes/beerenwinkel/ssumana/Documents/ETH/CRISPR/SLIDR/Figures/finalPlot_res2",Sys.Date(),".pdf"),
        width = 12, height = 12.5)
