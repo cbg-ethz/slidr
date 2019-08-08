@@ -1,2 +1,0 @@
-driver_gene	sl_partner_gene	WT_pvalue	mut_pvalue	mut_qvalue
-MG1	PG8	0.255832655359199	4.16666666666667e-14	6.66666666666667e-10
