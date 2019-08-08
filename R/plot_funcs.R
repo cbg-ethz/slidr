@@ -31,7 +31,7 @@ plotSLBoxplot <- function(canc_data, hits_df, path_results, WT_pval_thresh = 0.2
   names(CNA_colors) <- c("Amplification","Neutral","Deep Deletion")
 
   # Filtering out the pairs with significant viabilities in WT
-  hits_df <- hits_df %>% dplyr::filter(WT_pvalue > WT_pval_thresh)
+  hits_df <- hits_df %>% dplyr::filter(WT_pvalue >= WT_pval_thresh)
 
   if(nrow(hits_df) > 0){
     viabilities   <- canc_data$viabilities
