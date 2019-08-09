@@ -28,6 +28,7 @@ library(ipw)
 # library(sandwich) #for robust variance estimation
 # library(survey)
 library(Matching)
+library(slidr)
 
 # Set path to all data
 base_folder = "~/GitHub/CrispR/Data/"
@@ -85,8 +86,8 @@ all_data <- lapply(Primary_sites,
                                                       fdr = fdr, 
                                                       min_Nmut = min_Nmut, 
                                                       all_cancers_mut_df = all_cancers_mut_df, 
-                                                      CN_df = CN_df, 
-                                                      gistic = TRUE, 
+                                                      CN_df = CN_df, #CN_df_gistic 
+                                                      gistic = FALSE, #TRUE 
                                                       celllines = cellline_list[[x]], 
                                                       meta_data = meta_data, 
                                                       essential_genes = essen_gene_list[[x]])})
@@ -98,12 +99,13 @@ names(all_data) <- Primary_sites
 Once the data is processed in the correct format, use the `identifySLHits` function to get the mutation-specific SL partner for each cancer type. 
 
 ```{r Identify_SL}
-path_results <- "~/Downloads/Slidr_Results/"
+path_results <- "~/Downloads/Slidr_Results_new/"
 
 hits <- lapply(all_data, 
-               function(x){slidr::identifySLHits(canc_data = x, path_results = path_results)})
+               function(x){slidr::identifySLHits(canc_data = x, path_results = path_results, WT_pval_thresh = 0.1)})
 names(hits) <- names(all_data)
 
+save.image(paste0(path_results, "ProcessedData.Rdata"))
 ```
 ## Pan Cancer Analysis
 
@@ -133,7 +135,7 @@ data_ataris <- as.data.frame(t(apply(data_ataris,
                                            x})))
 pc_data$viabilities <- data_ataris[!rownames(data_ataris) %in% pc_essen_gene,pc_celllines]
 
-# Threshold for removing drivers with fewer than 2% mutated samples
+# Threshold for removing drivers with fewer than 8% mutated samples
 mut_pc     <- 8 #2         
 mut_thresh <- floor(mut_pc * length(pc_celllines) / 100)
 CN_Thr     <- 1 # Threshold to choose only deep deletions
@@ -155,7 +157,7 @@ CN_bin[is.na(CN_bin)] <- 0
 # Updating copy numbers in mutation matrix
 pc_data$mutations <- binarize((CN_bin + mut_mat), threshold = 0)
 
-# Removing genes with < 2% mutated samples
+# Removing genes with < 8% mutated samples
 pc_data$mutations   <- pc_data$mutations[rowSums(pc_data$mutations) >= mut_thresh, ]
 
 # Create a mutation annotation file
@@ -179,14 +181,14 @@ pc_data$mutation_annot <- left_join(pc_data$mutation_annot, CN_alterations_df, b
 # Replacing all the na
 pc_data$mutation_annot[is.na(pc_data$mutation_annot)] <- 0
 
-save.image("~/Downloads/Slidr_Results/pancan.Rdata")
+save.image("~/Downloads/Slidr_Results_new/pancan.Rdata")
 
 ```
 Identify Synthetic lethals from pan cancer data.
 
 ```{r sl_pancancer}
 # Path for results
-path_results <- "~/Downloads/Slidr_Results/"
+path_results <- "~/Downloads/Slidr_Results_new/"
 
 hits_pancan <- slidr::identifySLHits(canc_data = pc_data, path_results = path_results, WT_pval_thresh = 0, qval_thresh = 1)
 
