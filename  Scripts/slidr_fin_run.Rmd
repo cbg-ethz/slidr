@@ -180,3 +180,72 @@ path_results <- "~/Downloads/Slidr_Results_new/"
 hits_pancan <- slidr::identifySLHits(canc_data = pc_data, path_results = path_results, WT_pval_thresh = 0, qval_thresh = 1)
 
 ```
+Processing data for the result plots
+```{r plot_data}
+load("~/Downloads/Slidr_Results_new/PanCan8pc/causal_res.Rdata")
+
+# create data frame for each pair with frequency of different celllines for all original 151 hits
+orig_canc_type_df <- do.call(rbind.data.frame, lapply(1:nrow(hits_pancan), function(x){
+                                                  mutations     <- pc_data$mutations
+                                                  mut_celllines <- names(which(mutations[hits_pancan$driver_gene[x],] == 1))
+                                                  cancer_types  <- sapply(mut_celllines, 
+                                                                        function(x){paste(strsplit(x,"_")[[1]][-1], collapse = "_")})
+                                                  cancer_types  <- as.data.frame(table(cancer_types))
+                                                  data.frame(hits_pancan$driver_gene[x], hits_pancan$sl_partner_gene[x], cancer_types)
+                                                #}
+                                                
+}))
+
+colnames(orig_canc_type_df) <- c("driver_gene", "sl_partner_gene", "canc_type", "n_samples")
+orig_canc_type_df$tot_samples <- rowSums(pc_data$mutations[as.character(orig_canc_type_df$driver_gene),])
+
+
+# modifying for the filtered hits after causal inference
+original_hits_pancan <- hits_pancan
+hits_pancan          <- filt_hits_pancan
+
+# create data frame for each pair with frequency of different celllines
+canc_type_df <- do.call(rbind.data.frame, lapply(1:nrow(hits_pancan), function(x){
+                                                  mutations     <- pc_data$mutations
+                                                  mut_celllines <- names(which(mutations[hits_pancan$driver_gene[x],] == 1))
+                                                  cancer_types  <- sapply(mut_celllines, 
+                                                                        function(x){paste(strsplit(x,"_")[[1]][-1], collapse = "_")})
+                                                  cancer_types  <- as.data.frame(table(cancer_types))
+                                                  data.frame(hits_pancan$driver_gene[x], hits_pancan$sl_partner_gene[x], cancer_types)
+                                                #}
+                                                
+}))
+
+colnames(canc_type_df) <- c("driver_gene", "sl_partner_gene", "canc_type", "n_samples")
+
+min_Nmut = 2
+
+# get the p-value for each pair and type of cancer
+pval_df <- do.call(rbind.data.frame, lapply(1:nrow(canc_type_df), function(x){
+                                          canc_type        <- as.character(canc_type_df$canc_type[x])
+                                          driver           <- as.character(canc_type_df$driver_gene[x])
+                                          sl_partner       <- as.character(canc_type_df$sl_partner_gene[x])
+                                          celllines        <- grep(canc_type,colnames(pc_data$mutations))
+                                          mut_samples      <- sum(pc_data$mutations[driver,celllines])
+                                          if(mut_samples >= min_Nmut & (length(celllines) - mut_samples) >= min_Nmut){
+                                            temp             <- pc_data
+                                            temp$mutations   <- pc_data$mutations[,celllines]
+                                            temp$viabilities <- pc_data$viabilities[,celllines]
+                                            c(canc_type,slidr::getPval(temp,driver,sl_partner))
+                                          }else
+                                            c(canc_type,driver,sl_partner,1,1)
+                                          
+}))
+
+colnames(pval_df)          <- c("canc_type","driver_gene", "sl_partner_gene", "WT_pvalue", "mut_pvalue")
+summary_df                 <- left_join(canc_type_df, pval_df, by = c("driver_gene","sl_partner_gene","canc_type"))
+summary_df$sl_partner_gene <- sapply(summary_df$sl_partner_gene, function(x){strsplit(x, ",")[[1]][1]})
+summary_df                 <- cbind(paste(summary_df$driver_gene,summary_df$sl_partner_gene, sep = "_"), 
+                                    summary_df,
+                                    rowSums(pc_data$mutations[summary_df$driver_gene,]))
+colnames(summary_df)[c(1,8)]  <- c("sl_pairs","tot_samples")
+summary_df                    <- summary_df %>% dplyr::filter(mut_pvalue != 1 & WT_pvalue != 1)
+
+save(list = c("orig_canc_type_df", "summary_df"), file = "~/Downloads/Slidr_Results_new/PanCan8pc/summary_data.Rdata")
+
+```
