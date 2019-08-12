@@ -548,7 +548,7 @@ for(i in 1:nrow(grouped_hits)){
 
 ```
 
-
+Trying other models like IPTW for causality. 
 
 ```{r causality_2}
 
