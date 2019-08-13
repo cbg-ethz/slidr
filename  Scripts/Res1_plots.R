@@ -13,7 +13,7 @@ hits_pancan <- read.delim("~/Downloads/Slidr_Results_new/PanCan8pc/Hit_List/SL_h
 
 # Stacked barplot
 barplot_df  <- orig_canc_type_df %>% dplyr::distinct(driver_gene, n_samples, canc_type, tot_samples)
-old_levels <- levels(barplot_df$canc_type)
+old_levels  <- levels(barplot_df$canc_type)
 barplot_df$canc_type <- factor(barplot_df$canc_type,
                                levels = c(sort(old_levels)),
                                labels = c("Autonomic ganglia", "Biliary tract", "Bone",
@@ -65,6 +65,7 @@ bp_summary_df <- hits_pancan %>% filter(sl_partner_gene %in% confounders)
 # removing long names for better aesthetics
 bp_summary_df$sl_partner_gene <- unlist(lapply(bp_summary_df$sl_partner_gene,
                                         function(x){strsplit(x, ",")[[1]][1]}))
+
 b <- ggplot(bp_summary_df, aes(x=driver_gene, y=sl_partner_gene, size = -log10(mut_pvalue))) +
   geom_point(fill = "#055C95",color="#055C95", alpha=0.45) +
   scale_size_continuous(range=c(2, 10)) +
@@ -91,6 +92,7 @@ b <- ggplot(bp_summary_df, aes(x=driver_gene, y=sl_partner_gene, size = -log10(m
 # removing long names for better aesthetics
 summary_df$sl_partner_gene <- unlist(lapply(summary_df$sl_partner_gene,
                                                function(x){strsplit(x, ",")[[1]][1]}))
+# Removing the driver pairs
 summary_df <- summary_df %>% dplyr::filter(driver_gene != sl_partner_gene)
 
 d <- ggplot(summary_df, aes(x = sl_partner_gene, y = canc_type)) +

@@ -228,7 +228,7 @@ pval_df <- do.call(rbind.data.frame, lapply(1:nrow(canc_type_df), function(x){
                                           celllines        <- grep(canc_type,colnames(pc_data$mutations))
                                           mut_samples      <- sum(pc_data$mutations[driver,celllines])
                                           if(mut_samples >= min_Nmut & (length(celllines) - mut_samples) >= min_Nmut){
-                                            temp             <- pc_data
+                                            temp             <- NULL
                                             temp$mutations   <- pc_data$mutations[,celllines]
                                             temp$viabilities <- pc_data$viabilities[,celllines]
                                             c(canc_type,slidr::getPval(temp,driver,sl_partner))
