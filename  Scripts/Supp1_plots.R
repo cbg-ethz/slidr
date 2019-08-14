@@ -49,7 +49,7 @@ fin_plot <- plot_grid(row_1, row_2,
 ggsave(fin_plot, filename = paste0("/Volumes/beerenwinkel/ssumana/Documents/ETH/CRISPR/SLIDR/Figures/finalPlot_supp1",Sys.Date(),".pdf"),
        width = 14, height = 11)
 
-# Hits for the Venn diagram of FP and F
+# Hits for the Venn diagram in liver comparing FDR, SLIdR, and Bonferroni
 rm(list = ls())
 
 # Loading cancer specific hits
