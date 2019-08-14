@@ -61,12 +61,15 @@ path_results   <- "~/Downloads/Slidr_Results_new/"
 all_hits_liver <- read.delim("~/Downloads/Slidr_Results_new/ContCN/All_SL_hits_liver.txt", stringsAsFactors = FALSE)
 all_hits_liver$fdr <- p.adjust(all_hits_liver$mut_pvalue, method = "fdr")
 all_hits_liver$bon <- p.adjust(all_hits_liver$mut_pvalue, method = "bonferroni")
-fdr_hits_liver <- all_hits_liver %>% dplyr::filter(WT_pvalue >= 0.1 & fdr <= 0.1)
-bon_hits_liver <- all_hits_liver %>% dplyr::filter(WT_pvalue >= 0.1 & bon <= 0.1)
+fdr_hits_liver <- all_hits_liver %>%
+                  dplyr::filter(WT_pvalue >= 0.1 & fdr <= 0.1 & driver_gene != sl_partner_gene)
+bon_hits_liver <- all_hits_liver %>%
+                  dplyr::filter(WT_pvalue >= 0.1 & bon <= 0.1 & driver_gene != sl_partner_gene)
 
 # Hits from our method
 sub_hits_liver <- read.delim("~/Downloads/Slidr_Results_new/ContCN/Hit_List/SL_hits_liver.txt", stringsAsFactors = FALSE)
-sub_hits_liver <- sub_hits_liver %>% dplyr::filter(WT_pvalue >= 0.1)
+sub_hits_liver <- sub_hits_liver %>%
+                  dplyr::filter(WT_pvalue >= 0.1 & driver_gene != sl_partner_gene)
 
 # Common hits between different methods
 fdr_ours <- intersect(paste0(fdr_hits_liver$driver_gene, fdr_hits_liver$sl_partner_gene),
@@ -77,3 +80,4 @@ bon_ours <- intersect(paste0(bon_hits_liver$driver_gene, bon_hits_liver$sl_partn
 
 bon_fdr <- intersect(paste0(bon_hits_liver$driver_gene, bon_hits_liver$sl_partner_gene),
                       paste0(fdr_hits_liver$driver_gene, fdr_hits_liver$sl_partner_gene))
+
