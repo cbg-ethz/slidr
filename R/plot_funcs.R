@@ -5,10 +5,10 @@
 #' @param canc_data Processed data object for a given cancer type
 #' @param hits_df dataframe of SL pairs with their p-values returned by `identifySLHits` function
 #' @param path_results The path to where the results should be stored
-#' @param WT_pval_thresh Discard SL pairs with WT p-values less than this threshold. Default = 0.2
+#' @param WT_pval_thresh Discard SL pairs with WT p-values less than this threshold. Default = 0.1
 #' @export
 #'
-plotSLBoxplot <- function(canc_data, hits_df, path_results, WT_pval_thresh = 0.2){
+plotSLBoxplot <- function(canc_data, hits_df, path_results, WT_pval_thresh = 0.1){
   # Creating the output folder if it does not exist
   output_folder = paste(path_results,"Plots/", canc_data$primary_site, "/", sep = "")
   if(!dir.exists(output_folder)){
