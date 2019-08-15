@@ -32,13 +32,13 @@ IH_CDF <- function(x, n) {
 #' @param canc_data Processed data object for a given cancer type
 #' @param fp_thresh The average number of false positives allowed. Default = 1
 #' @param path_results The path to where the results should be stored. Default working directory.
-#' @param WT_pval_thresh Discard SL pairs with WT p-values less than this threshold. Default = 0.2
+#' @param WT_pval_thresh Discard SL pairs with WT p-values less than this threshold. Default = 0.1
 #' Required by `plotSLBoxplot` function
 #' @return a dataframe of driver gene with its corresponding SL partner, the p-value in WT samples,
 #' p-value in mutated samples, the corresponding value after scaling, and available drugs if any.
 #' @export
 
-identifySLHits <- function(canc_data, fp_thresh = 1, path_results = NULL, WT_pval_thresh = 0.2){
+identifySLHits <- function(canc_data, fp_thresh = 1, path_results = NULL, WT_pval_thresh = 0.1){
 
   if(is.null(path_results)){
     output_folder = paste(getwd(),"/Hit_List/", sep = "")
