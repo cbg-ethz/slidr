@@ -6,24 +6,32 @@ library(cowplot)
 library(reshape2)
 
 # Regular bar plot
-load("/Volumes/bsse_group_beerenwinkel/ssumana/Documents/ETH/CRISPR/SLIDR/Plots/2018/13Aug2018/Pan_cancer_8pc/pancan.Rdata")
+load("~/Downloads/Slidr_Results_new/PanCan8pc/pancan.Rdata")
 
 sites_vec   <- sapply(pc_celllines, function(x){paste(strsplit(x, "_")[[1]][-1], collapse = " ")})
 sites_tab   <- table(sites_vec)
-sites_tab   <- sites_tab[sites_tab > 2]
+# sites_tab   <- sites_tab[sites_tab > 2]
 sites_df    <- as.data.frame(sites_tab)
 colnames(sites_df) <- c("individual", "value")
 sites_df$id <- 1:nrow(sites_df)
 
 
 label_data <- sites_df
-label_data$sites <- c("Autonomic ganglia", "Bone", "Breast", "CNS", "Endometrium",
-                      "Blood", "Kidney", "Large intestine", "Liver", "Lung", "Oesophagus",
-                      "Ovary", "Pancreas", "Pleura", "Skin", "Soft tissue", "Stomach", "Thyroid",
+label_data$sites <- c("Autonomic ganglia", "Biliary tract", "Bone",
+                      "Breast", "CNS", "Endometrium",
+                      "Blood", "Kidney", "Large intestine",
+                      "Liver", "Lung", "Oesophagus",
+                      "Ovary", "Pancreas", "Pleura",
+                      "Prostate", "Salivary gland","Skin",
+                      "Soft tissue", "Stomach", "Thyroid",
                       "UADT", "Urinary tract")
-sites_df$labels <- c("Autonomic ganglia", "Bone", "Breast", "CNS", "Endometrium",
-                     "Blood", "Kidney", "Large intestine", "Liver", "Lung", "Oesophagus",
-                     "Ovary", "Pancreas", "Pleura", "Skin", "Soft tissue", "Stomach", "Thyroid",
+sites_df$labels <- c("Autonomic ganglia", "Biliary tract", "Bone",
+                     "Breast", "CNS", "Endometrium",
+                     "Blood", "Kidney", "Large intestine",
+                     "Liver", "Lung", "Oesophagus",
+                     "Ovary", "Pancreas", "Pleura",
+                     "Prostate", "Salivary gland","Skin",
+                     "Soft tissue", "Stomach", "Thyroid",
                      "UADT", "Urinary tract")
 
 b1 <- ggplot(sites_df, aes(x = reorder(labels,-value), y=value)) +
@@ -43,7 +51,7 @@ b1 <- ggplot(sites_df, aes(x = reorder(labels,-value), y=value)) +
         strip.background = element_blank(),
         legend.position = "none")
 
-ggsave(b1, filename = paste0("/Volumes/bsse_group_beerenwinkel/ssumana/Documents/ETH/CRISPR/SLIDR/Figures/primarySites",Sys.Date(),".pdf"),
+ggsave(b1, filename = paste0("/Volumes/beerenwinkel/ssumana/Documents/ETH/CRISPR/SLIDR/Figures/primarySites",Sys.Date(),".pdf"),
        width = 5.5, height = 5.5)
 
 rm(list = setdiff(ls(), "b1"))
@@ -245,7 +253,7 @@ v <- ggplot(violin_df, aes(x=factor(class), y=value)) +
             fontface = "bold",
             size = 3.25)
 
-ggsave(v, filename = paste0("/Volumes/bsse_group_beerenwinkel/ssumana/Documents/ETH/CRISPR/SLIDR/Figures/violinPlot",Sys.Date(),".pdf"),
+ggsave(v, filename = paste0("/Volumes/beerenwinkel/ssumana/Documents/ETH/CRISPR/SLIDR/Figures/violinPlot",Sys.Date(),".pdf"),
        width = 7, height = 7)
 
 row_1 <- plot_grid(NULL, b1, labels = c("A","B"), rel_widths = c(0.4,0.6), nrow = 1, label_size = 13)
@@ -258,6 +266,6 @@ fin_plot <- plot_grid(row_1, row_2, NULL, row_3, row_4,
                       #rel_heights = c(1,0.75,0.05,0.8,0.75))
                       rel_heights = c(0.75,0.75,0.05,0.8,0.75))
 
-ggsave(fin_plot, filename = paste0("/Volumes/bsse_group_beerenwinkel/ssumana/Documents/ETH/CRISPR/SLIDR/Figures/finalPlot_intro",Sys.Date(),".pdf"),
+ggsave(fin_plot, filename = paste0("/Volumes/beerenwinkel/ssumana/Documents/ETH/CRISPR/SLIDR/Figures/finalPlot_intro",Sys.Date(),".pdf"),
        width = 10, height = 15)
 
