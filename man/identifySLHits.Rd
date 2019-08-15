@@ -4,22 +4,22 @@
 \alias{identifySLHits}
 \title{Retrieve list of mutation-specific synthetic lethal partners for each type of cancer}
 \usage{
-identifySLHits(canc_data, qval_thresh = 1, path_results = NULL,
-  WT_pval_thresh = 0.2)
+identifySLHits(canc_data, fp_thresh = 1, path_results = NULL,
+  WT_pval_thresh = 0.1)
 }
 \arguments{
 \item{canc_data}{Processed data object for a given cancer type}
 
-\item{qval_thresh}{The number of false positives allowed after correction. Default = 1}
+\item{fp_thresh}{The average number of false positives allowed. Default = 1}
 
 \item{path_results}{The path to where the results should be stored. Default working directory.}
 
-\item{WT_pval_thresh}{Discard SL pairs with WT p-values less than this threshold. Default = 0.2
+\item{WT_pval_thresh}{Discard SL pairs with WT p-values less than this threshold. Default = 0.1
 Required by `plotSLBoxplot` function}
 }
 \value{
 a dataframe of driver gene with its corresponding SL partner, the p-value in WT samples,
-p-value in mutated samples and the corresponding value after correction.
+p-value in mutated samples, the corresponding value after scaling, and available drugs if any.
 }
 \description{
 Rank test based on Irwin-Hall distribution to identify synthetic lethal (SL) partners

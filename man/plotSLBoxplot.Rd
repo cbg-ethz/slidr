@@ -4,7 +4,7 @@
 \alias{plotSLBoxplot}
 \title{Function to plot annotated box-plots of SL pairs for a given cancer type}
 \usage{
-plotSLBoxplot(canc_data, hits_df, path_results, WT_pval_thresh = 0.2)
+plotSLBoxplot(canc_data, hits_df, path_results, WT_pval_thresh = 0.1)
 }
 \arguments{
 \item{canc_data}{Processed data object for a given cancer type}
@@ -13,7 +13,7 @@ plotSLBoxplot(canc_data, hits_df, path_results, WT_pval_thresh = 0.2)
 
 \item{path_results}{The path to where the results should be stored}
 
-\item{WT_pval_thresh}{Discard SL pairs with WT p-values less than this threshold. Default = 0.2}
+\item{WT_pval_thresh}{Discard SL pairs with WT p-values less than this threshold. Default = 0.1}
 }
 \description{
 Function to plot annotated box-plots of SL pairs for a given cancer type
