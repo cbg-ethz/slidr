@@ -190,7 +190,7 @@ Identify Synthetic lethals from pan cancer data.
 # Path for results
 path_results <- "~/Downloads/Slidr_Results_new/"
 
-hits_pancan <- slidr::identifySLHits(canc_data = pc_data, path_results = path_results, WT_pval_thresh = 0, qval_thresh = 1)
+hits_pancan <- slidr::identifySLHits(canc_data = pc_data, path_results = path_results, WT_pval_thresh = 0, fp_thresh = 1)
 
 ```
 
@@ -737,12 +737,12 @@ unlist(lapply(p53_truncate_data, function(x){print(dim(x))}))
 hits_pancan_missense <- slidr::identifySLHits(canc_data = p53_missense_data, 
                                                path_results = path_results, 
                                                WT_pval_thresh = 0, 
-                                               qval_thresh = 1)
+                                               fp_thresh = 1)
 
 hits_pancan_truncate <- slidr::identifySLHits(canc_data = p53_truncate_data, 
                                                path_results = path_results, 
                                                WT_pval_thresh = 0, 
-                                               qval_thresh = 1)
+                                               fp_thresh = 1)
 
 hits_list <- list(All = hits_pancan$sl_partner_gene[hits_pancan$driver_gene == "TP53"],
                   Missense = hits_pancan_missense$sl_partner_gene[hits_pancan_missense$driver_gene == "TP53"],

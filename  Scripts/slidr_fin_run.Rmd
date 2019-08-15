@@ -177,7 +177,7 @@ Identify Synthetic lethals from pan cancer data.
 # Path for results
 path_results <- "~/Downloads/Slidr_Results_new/"
 
-hits_pancan <- slidr::identifySLHits(canc_data = pc_data, path_results = path_results, WT_pval_thresh = 0, qval_thresh = 1)
+hits_pancan <- slidr::identifySLHits(canc_data = pc_data, path_results = path_results, WT_pval_thresh = 0, fp_thresh = 1)
 
 ```
 Processing data for the result plots
