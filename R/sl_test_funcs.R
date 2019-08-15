@@ -30,15 +30,15 @@ IH_CDF <- function(x, n) {
 #' @import tidyr
 #' @import rDGIdb
 #' @param canc_data Processed data object for a given cancer type
-#' @param qval_thresh The number of false positives allowed after correction. Default = 1
+#' @param fp_thresh The average number of false positives allowed. Default = 1
 #' @param path_results The path to where the results should be stored. Default working directory.
 #' @param WT_pval_thresh Discard SL pairs with WT p-values less than this threshold. Default = 0.2
 #' Required by `plotSLBoxplot` function
 #' @return a dataframe of driver gene with its corresponding SL partner, the p-value in WT samples,
-#' p-value in mutated samples and the corresponding value after correction.
+#' p-value in mutated samples, the corresponding value after scaling, and available drugs if any.
 #' @export
 
-identifySLHits <- function(canc_data, qval_thresh = 1, path_results = NULL, WT_pval_thresh = 0.2){
+identifySLHits <- function(canc_data, fp_thresh = 1, path_results = NULL, WT_pval_thresh = 0.2){
 
   if(is.null(path_results)){
     output_folder = paste(getwd(),"/Hit_List/", sep = "")
@@ -57,7 +57,7 @@ identifySLHits <- function(canc_data, qval_thresh = 1, path_results = NULL, WT_p
                             sl_partner=character(),
                             WT_pvalue=double(),
                             mut_pvalue=double(),
-                            mut_qvalue=double(),
+                            sc_pvalue=double(),
                             stringsAsFactors=FALSE)
 
   for(driver_gene in rownames(mutations)) {
@@ -86,9 +86,9 @@ identifySLHits <- function(canc_data, qval_thresh = 1, path_results = NULL, WT_p
     k = 1
     mut_pvalue <- IH_CDF(genes_rank_sum_mut[k], n)
     # Perform tests until a given threshold on number of acceptable FP
-    while((mut_pvalue * n_tests) < qval_thresh && k <= max_rank){
+    while((mut_pvalue * n_tests) < fp_thresh && k <= max_rank){
       sl_partner_gene <- names(genes_rank_sum_mut[k])
-      mut_qvalue      <- mut_pvalue * n_tests # Accounting for multiple testing by adjusting p-value
+      sc_pvalue       <- mut_pvalue * n_tests # Scaling p-value to check if it's less than average FP
       # IH test for SL partner gene in WT cell lines
       WT_cdf          <- IH_CDF(genes_rank_sum_WT[sl_partner_gene], m)
       WT_pvalue       <- 2 * min(WT_cdf, 1-WT_cdf)
@@ -98,7 +98,7 @@ identifySLHits <- function(canc_data, qval_thresh = 1, path_results = NULL, WT_p
                                                 sl_partner_gene,
                                                 WT_pvalue,
                                                 mut_pvalue,
-                                                mut_qvalue))
+                                                sc_pvalue))
       k               <- k + 1
       if(k <= max_rank){
         mut_pvalue <- IH_CDF(genes_rank_sum_mut[k], n) # Performing Irwin Hall test for next gene
@@ -110,7 +110,7 @@ identifySLHits <- function(canc_data, qval_thresh = 1, path_results = NULL, WT_p
   cat("Finished performing all tests successfully!\n")
   results$WT_pvalue       <- as.numeric(as.character(results$WT_pvalue))
   results$mut_pvalue      <- as.numeric(as.character(results$mut_pvalue))
-  results$mut_qvalue      <- as.numeric(as.character(results$mut_qvalue))
+  results$sc_pvalue      <- as.numeric(as.character(results$sc_pvalue))
   results$driver_gene     <- as.character(results$driver_gene)
   results$sl_partner_gene <- as.character(results$sl_partner_gene)
   results                 <- results[order(results$mut_pvalue),]
