@@ -66,7 +66,7 @@ a <- ggplot(mut_freq_df, aes(x = driver_gene, y = factor(canc_type)))+
 # Chord diagram
 cs_hits <- read.delim("~/Downloads/Slidr_Results_new/CanSpecific_literature.txt", stringsAsFactors = FALSE)
 cs_hits$sl_partner_gene <- sapply(cs_hits$sl_partner_gene, function(x){strsplit(x, ",")[[1]][1]})
-cs_mat <- reshape2::acast(cs_hits, driver_gene~sl_partner_gene, value.var="sc_pvalue")
+cs_mat <- reshape2::acast(cs_hits, driver_gene~sl_partner_gene, value.var="mut_pvalue")
 cs_mat[is.na(cs_mat)] <- 0
 cs_mat[cs_mat>0]      <- 1
 # colnames(cs_mat) <- sapply(colnames(cs_mat), function(x){strsplit(x, ",")[[1]][1]})
@@ -119,7 +119,7 @@ b <- b +
       theme(aspect.ratio = 1)
 
 # Adding legend: Plotting a density plot to get the legend
-lgd <- get_legend(ggplot(cs_hits, aes(sc_pvalue, color = Type, fill = Type)) +
+lgd <- get_legend(ggplot(cs_hits, aes(mut_pvalue, color = Type, fill = Type)) +
                     geom_density(alpha = .85) +
                     theme(legend.position = "right",
                           legend.title = element_text(vjust = 1, size=12,colour="#525252"),
