@@ -130,22 +130,22 @@ n_mutations <- 4
 
 celllines   <- paste(rep("CL", n_celllines), 1:n_celllines, sep = " ")
 perturbs    <- paste(rep("PG", n_perturbs), 1:n_perturbs, sep = " ")
-mutations   <- paste(rep("MG", n_mutations), 1:n_mutations, sep = " ")
+mutations   <- paste(rep("DG", n_mutations), 1:n_mutations, sep = " ")
 
 mut_mat                      <- matrix(0,n_mutations, n_celllines)
 dimnames(mut_mat)            <- list(mutations,celllines)
-mut_mat["MG 1",c("CL 2", "CL 3", "CL 4", "CL 5")] <- 1
-mut_mat["MG 2",c("CL 7", "CL 9", "CL 10")]        <- 1
-mut_mat["MG 3",c("CL 1", "CL 6", "CL 5", "CL 8")] <- 1
-mut_mat["MG 4",c("CL 1", "CL 3", "CL 10")]        <- 1
+mut_mat["DG 1",c("CL 2", "CL 3", "CL 4", "CL 5")] <- 1
+mut_mat["DG 2",c("CL 7", "CL 9", "CL 10")]        <- 1
+mut_mat["DG 3",c("CL 1", "CL 6", "CL 5", "CL 8")] <- 1
+mut_mat["DG 4",c("CL 1", "CL 3", "CL 10")]        <- 1
 mut_df                       <- melt(mut_mat)
-mut_df$bordercol             <- ifelse(mut_df$Var1 == "MG 1", "0", "1")
+mut_df$bordercol             <- ifelse(mut_df$Var1 == "DG 1", "0", "1")
 
 p <- ggplot(mut_df, aes(Var1, Var2)) +
   geom_tile(aes(fill = as.factor(value), width=0.97, height=0.97), size = 0.5, alpha=0.75) +
   #geom_tile(aes(fill = as.factor(value), color = as.factor(bordercol), width=0.98, height=0.98), size = 0.5, alpha=0.75) +
   ylab("Cell Lines") +
-  xlab("Mutated Genes") +
+  xlab("Driver Genes") +
   labs(fill = "Genotype") +
   theme_bw()+
   theme(plot.margin = unit(c(1, 0.5, 1, 0.75), "lines"),
@@ -224,7 +224,7 @@ mut1              <- mutations[1]
 v <- ggplot(violin_df, aes(x=factor(class), y=value)) +
   geom_violin(aes(fill=factor(class),colour=factor(class)),alpha=0.5,position=position_dodge(0.9), size=0.9)+
   geom_boxplot(aes(colour=factor(class)),width=0.1,outlier.shape=NA, size=0.7) +
-  ggtitle("MG 1 - PG 8 SL pair") +
+  ggtitle("DG 1 - PG 8 SL pair") +
   ylab("Viabilities of all perturbed genes") +
   xlab(paste0(mut1, " genotype"))+
   ylim(-3,2) +
