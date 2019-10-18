@@ -28,8 +28,8 @@ The code used to process the data and run SLIdR is available in `Scripts/slidr_f
 
 The code for causal inference is available in `CI_matching.R`. 
 
-## Author
+## Contact
 
 The package and documentation is currently being updated. Therefore, if you have any questions, please contact <br/>
-_Sumana Srivatsa_: [sumana.srivatsa@bsse.ethz.ch](sumana.srivatsa@bsse.ethz.ch)
+[Sumana Srivatsa](sumana.srivatsa@bsse.ethz.ch)
   
