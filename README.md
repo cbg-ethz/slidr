@@ -20,7 +20,7 @@ install_github("cbg-ethz/slidr")
 
 The code used to process the data and run SLIdR is available in `Scripts/slidr_fin_run.Rmd`. `cellline_annot` used in the code corresponds to the supplementary Table S2 from the project DRIVE paper. `meta_data` should be a dataframe with variables:
 
-  * `Primary_site`: Name of primary site of tumor. <br/> Example: _pancreas_
+  * `Primary_site`: Name of primary site of tumor. <br/> Example: _central_nervous_system_
   * `Driver_gene_file`: List of all MAF files for each cancer type. If the cancer has several sub-types then the MAF file names should be separated by `;`. <br/> Example for Lung cancer: _Rank_LUSC_MutSig2CV.txt ; Rank_LUAD_MutSig2CV.txt_ 
   * `Organ`: Name of the primary organ with the tumor. Can be the same as `Primary_site`.
   * `Additional_filters`: Names of tumor sub-types separated by `;`. <br/>
