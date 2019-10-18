@@ -5,7 +5,7 @@ An R package for identification of synthetic lethal partners for mutations from 
 
 ### Data
 
-The data used is big and cannot be stored on Github. The raw shRNA data has already been published as a part of project DRIVE (https://data.mendeley.com/datasets/y3ds55n88r/4 ) and all the mutation and copynumber data from CCLE are available at  https://portals.broadinstitute.org/ccle. The MutSig 2CV v3.1 MAF file for each cancer type is available at  http://firebrowse.org/. If you wish to use the processed data, please contact us and we'd be happy to share them. 
+The entire dataset used in the paper is big and cannot be stored on Github. The raw shRNA data has already been published as a part of project DRIVE (https://data.mendeley.com/datasets/y3ds55n88r/4 ) and all the mutation and copynumber data from CCLE are available at  https://portals.broadinstitute.org/ccle. The MutSig 2CV v3.1 MAF file for each cancer type is available at  http://firebrowse.org/. If you wish to use the processed data, please contact us and we'd be happy to share them. 
 
 
 ### SLIdR usage
@@ -17,16 +17,18 @@ install.packages("devtools")
 library(devtools) 
 install_github("cbg-ethz/slidr")
 ```
+To run SLIdR, specify a path to store the results and use the `identifySLHits` function. 
 
-The code for processing the data and running SLIdR is available in `Scripts/slidr_fin_run.Rmd`. `cellline_annot` used in the code corresponds to the supplementary Table S2 from the project DRIVE paper. `meta_data` should be a dataframe with variables:
+```
+library(slidr)
 
-  * `Primary_site`: Name of primary site of tumor. <br/> Example: _central_nervous_system_
-  * `Driver_gene_file`: List of all MAF files for each cancer type. If the cancer has several sub-types then the MAF file names should be separated by `;`. <br/> Example for Lung cancer: _Rank_LUSC_MutSig2CV.txt ; Rank_LUAD_MutSig2CV.txt_ 
-  * `Organ`: Name of the primary organ with the tumor. Can be the same as `Primary_site`.
-  * `Additional_filters`: "None" if there are no sub-types or names of tumor sub-types as provided in `PATHOLOGIST_ANNOTATION` field in `cellline_annot` separated by `;`. <br/>
-  Example for Lung cancer: _Lung:NSCLC_Adeno;Lung:NSCLC_Squamous_
+data(LiverData)
+path_results <- "~/Downloads/"
 
-The code for causal inference is available in `CI_matching.R`. 
+hits <- slidr::identifySLHits(canc_data = LiverData, 
+                      path_results = path_results, 
+                      WT_pval_thresh = 0.1)
+```
 
 ### Contributions
 [Sumana Srivatsa](sumana.srivatsa@bsse.ethz.ch) <br/>
@@ -34,6 +36,6 @@ The code for causal inference is available in `CI_matching.R`.
 
 ### Contact
 
-The package and documentation are currently being updated. Therefore, if you have any questions, please contact <br/>
+If you have any questions, please contact <br/>
 [Sumana Srivatsa](sumana.srivatsa@bsse.ethz.ch)
   
