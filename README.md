@@ -22,13 +22,13 @@ The code used to process the data and run SLIdR is available in `Scripts/slidr_f
 
 * Bullet list
   * `Primary_site`: Name of cancer origin. Example: _pancreas_
-  * `Driver_gene_file`: List of all MAF files for each cancer type. If the cancer has several sub-types then the MAF file names should be separated by `;`. Example: _Rank_LUSC_MutSig2CV.txt ; Rank_LUAD_MutSig2CV.txt_ for Lung cancer
+  * `Driver_gene_file`: List of all MAF files for each cancer type. If the cancer has several sub-types then the MAF file names should be separated by ___;___. Example for Lung cancer: _Rank_LUSC_MutSig2CV.txt ; Rank_LUAD_MutSig2CV.txt_ 
   * `Organ`: Name of the primary organ with the tumor. Can be the same as `Primary_site`.
-  * `Additional_filters`: Names of tumor sub-types separated by __;__. 
+  * `Additional_filters`: Names of tumor sub-types separated by ___;___. 
   Example: _Lung:NSCLC_Adeno;Lung:NSCLC_Squamous_
   
-## Contact
+## Author
 
-If you have any questions, please contact
-Sumana Srivatsa [Named Link](sumana.srivatsa@bsse.ethz.ch "sumana.srivatsa@bsse.ethz.ch")
+This README document is currently being updated. Therefore, if you have any questions, please contact <\n>
+Sumana Srivatsa [sumana.srivatsa@bsse.ethz.ch](sumana.srivatsa@bsse.ethz.ch)
   
