@@ -1,7 +1,7 @@
 #' SLIdR object for liver cancer.
 #'
 #' A dataset containing the viabilities, mutation profiles,
-#' copy number alterations, and  mutation annotation dataframes,
+#' copy number alterations, and  mutation annotation dataframes
 #' for liver cancer.
 #'
 #' @format A list with 5 data structures:
