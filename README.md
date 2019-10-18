@@ -5,7 +5,7 @@ An R package for identification of synthetic lethal partners for mutations from 
 
 ### Data
 
-The data used is big and cannot be stored on Github. The raw shRNA data has already been published as a part of project DRIVE (https://data.mendeley.com/datasets/y3ds55n88r/4 ) and all the mutation and copynumber data from CCLE is available at  https://portals.broadinstitute.org/ccle. The MutSig 2CV v3.1 MAF file for each cancer type is available at  http://firebrowse.org/. If you wish to use the processed data, please contact us and we'd be happy to share it. 
+The data used is big and cannot be stored on Github. The raw shRNA data has already been published as a part of project DRIVE (https://data.mendeley.com/datasets/y3ds55n88r/4 ) and all the mutation and copynumber data from CCLE are available at  https://portals.broadinstitute.org/ccle. The MutSig 2CV v3.1 MAF file for each cancer type is available at  http://firebrowse.org/. If you wish to use the processed data, please contact us and we'd be happy to share them. 
 
 
 ### SLIdR usage
@@ -23,7 +23,7 @@ The code for processing the data and running SLIdR is available in `Scripts/slid
   * `Primary_site`: Name of primary site of tumor. <br/> Example: _central_nervous_system_
   * `Driver_gene_file`: List of all MAF files for each cancer type. If the cancer has several sub-types then the MAF file names should be separated by `;`. <br/> Example for Lung cancer: _Rank_LUSC_MutSig2CV.txt ; Rank_LUAD_MutSig2CV.txt_ 
   * `Organ`: Name of the primary organ with the tumor. Can be the same as `Primary_site`.
-  * `Additional_filters`: Names of tumor sub-types separated by `;`. <br/>
+  * `Additional_filters`: "None" if there are no sub-types or names of tumor sub-types as provided in `PATHOLOGIST_ANNOTATION` field in `cellline_annot` separated by `;`. <br/>
   Example for Lung cancer: _Lung:NSCLC_Adeno;Lung:NSCLC_Squamous_
 
 The code for causal inference is available in `CI_matching.R`. 
