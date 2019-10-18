@@ -29,7 +29,7 @@ The code used to process the data and run SLIdR is available in `Scripts/slidr_f
 The code for causal inference is available in `CI_matching.R`. 
 
 ### Contributions
-[Sumana Srivatsa](sumana.srivatsa@bsse.ethz.ch)
+[Sumana Srivatsa](sumana.srivatsa@bsse.ethz.ch) <br/>
 [Hesam Montazeri](hesam.montazeri@gmail.com)
 
 ### Contact
