@@ -28,14 +28,15 @@ data(LiverData)
 # Path for results
 path_results <- "~/Downloads/"
 # Threshold for significance in WT cell lines
-thresh = 0.1
+thresh <-  0.1
 
 hits <- slidr::identifySLHits(canc_data = LiverData, 
-                      path_results = path_results, 
-                      WT_pval_thresh = thresh)
+                              path_results = path_results, 
+                              WT_pval_thresh = thresh)
                       
 # Filtering significant hits in WT cell lines
-hits <- hits %>% dplyr::filter(WT_pvalue >= thresh)
+hits <- hits %>% 
+        dplyr::filter(WT_pvalue >= thresh)
 
 ```
 
