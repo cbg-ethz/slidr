@@ -16,7 +16,7 @@ LiverData
 }
 \description{
 A dataset containing the viabilities, mutation profiles,
-copy number alterations, and  mutation annotation dataframes,
+copy number alterations, and  mutation annotation dataframes
 for liver cancer.
 }
 \keyword{datasets}
