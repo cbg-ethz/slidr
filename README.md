@@ -31,5 +31,5 @@ The code for causal inference is available in `CI_matching.R`.
 ## Author
 
 The package and documentation is currently being updated. Therefore, if you have any questions, please contact <br/>
-__Sumana Srivatsa__: [sumana.srivatsa@bsse.ethz.ch](sumana.srivatsa@bsse.ethz.ch)
+_Sumana Srivatsa_: [sumana.srivatsa@bsse.ethz.ch](sumana.srivatsa@bsse.ethz.ch)
   
