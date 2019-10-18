@@ -17,13 +17,15 @@ install.packages("devtools")
 library(devtools) 
 install_github("cbg-ethz/slidr")
 ```
-To run SLIdR, specify a path to store the results and use the `identifySLHits` function. 
+To run SLIdR, specify a path to store the results and use the `identifySLHits` function. An example dataset for liver cancer is available in the package under `LiverData`. 
 
 ```
 library(slidr)
 library(dplyr)
 
 data(LiverData)
+
+# Path for results
 path_results <- "~/Downloads/"
 # Threshold for significance in WT cell lines
 thresh = 0.1
