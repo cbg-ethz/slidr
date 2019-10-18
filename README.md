@@ -1,6 +1,6 @@
 # slidr <img src="https://github.com/cbg-ethz/slidr/blob/master/slidr.png" align="right" width="155 px"/>
 
-An R package for identification of synthetic lethal partners for mutations from large perturbation screens.
+An R package for identifying synthetic lethal pairs from large-scale perturbation screens.
 
 
 ### Data
@@ -21,13 +21,20 @@ To run SLIdR, specify a path to store the results and use the `identifySLHits` f
 
 ```
 library(slidr)
+library(dplyr)
 
 data(LiverData)
 path_results <- "~/Downloads/"
+# Threshold for significance in WT cell lines
+thresh = 0.1
 
 hits <- slidr::identifySLHits(canc_data = LiverData, 
                       path_results = path_results, 
-                      WT_pval_thresh = 0.1)
+                      WT_pval_thresh = thresh)
+                      
+# Filtering significant hits in WT cell lines
+hits <- hits %>% dplyr::filter(WT_pvalue >= thresh)
+
 ```
 
 ### Contributions
