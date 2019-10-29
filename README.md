@@ -17,7 +17,7 @@ install.packages("devtools")
 library(devtools) 
 install_github("cbg-ethz/slidr")
 ```
-To run SLIdR, specify a path to store the results and use the `identifySLHits` function. An example dataset for liver cancer is available in the package under `LiverData`. 
+To run SLIdR, specify a path to store the results and use the `identifySLHits` function. An example dataset for liver cancer is available in the package under `LiverData`. The resulting variable `hits` is a dataframe of all the SL pairs in liver cancer as reported in the paper. 
 
 ```
 library(slidr)
