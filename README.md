@@ -1,5 +1,7 @@
 # slidr <img src="https://github.com/cbg-ethz/slidr/blob/master/slidr.png" align="right" width="155 px"/>
 
+https://travis-ci.org/cbg-ethz/slidr.svg?branch=master
+
 An R package for identifying synthetic lethal pairs from large-scale perturbation screens.
 
 
