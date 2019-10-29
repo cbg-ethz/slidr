@@ -12,7 +12,7 @@ Imports: biclust (>= 2.0.1),
          RColorBrewer (>= 1.1-2),
          reshape2 (>= 1.4.3),
          tidyr (>= 0.8.1)
-biocViews: rDGIdb (>= 1.6.0)
+biocViews: 
 Encoding: UTF-8
 LazyData: true
 RoxygenNote: 6.0.1
