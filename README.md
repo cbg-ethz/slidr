@@ -5,7 +5,7 @@ An R package for identifying synthetic lethal pairs from large-scale perturbatio
 
 ### Data
 
-The entire dataset used in the paper is big and cannot be stored on Github. The raw shRNA data has already been published as a part of project DRIVE (https://data.mendeley.com/datasets/y3ds55n88r/4 ) and all the mutation and copynumber data from CCLE are available at  https://portals.broadinstitute.org/ccle. The MutSig 2CV v3.1 MAF file for each cancer type is available at  http://firebrowse.org/. If you wish to use the processed data, please contact us and we'd be happy to share them. 
+The entire dataset used in the paper is big and cannot be stored on Github. The raw shRNA data has already been published as a part of project DRIVE (https://data.mendeley.com/datasets/y3ds55n88r/4 ) and all the mutation and copynumber data from CCLE are available at  https://portals.broadinstitute.org/ccle. The MutSig 2CV v3.1 MAF file for each cancer type is available at  http://firebrowse.org/. If you wish to use the processed data, please contact us and we'd be happy to share them. The code for processing the data, running both pan-cancer and cancer-type specific analyses, performing causal inference, and plotting the results are available under Scripts. 
 
 
 ### SLIdR usage
