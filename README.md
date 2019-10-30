@@ -49,8 +49,8 @@ The resulting variable `hits` is a dataframe of all the SL pairs in liver cancer
 The manuscript is available on [bioRxiv](https://www.biorxiv.org/content/10.1101/810374v1.full). The supplementary files and all the pan-cancer and cancer-type specific hits are available under [supplementary material](https://www.biorxiv.org/content/10.1101/810374v1.supplementary-material).
 
 ### Contributions
-[Sumana Srivatsa](mailto:sumana.srivatsa@bsse.ethz.ch) <br/>
-[Hesam Montazeri](mailto:hesam.montazeri@gmail.com)
+[Sumana Srivatsa](https://bsse.ethz.ch/department/people/detail-person.MjAyOTQw.TGlzdC8yNjY5LDEwNjI4NTM0MDk=.html) <br/>
+[Hesam Montazeri](http://lcbb.ut.ac.ir/)
 
 ### Contact
 
