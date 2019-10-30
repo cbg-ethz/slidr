@@ -12,7 +12,7 @@ The entire dataset used in the paper is big and cannot be stored on Github. The 
 
 ### SLIdR usage
 
-You can install SLIdR using devtools.
+You can install SLIdR using `devtools`.
 
 ```
 install.packages("devtools") 
@@ -46,8 +46,8 @@ hits <- hits %>%
 The manuscript is available on [bioRxiv](https://www.biorxiv.org/content/10.1101/810374v1.full). The supplementary files and all the pan-cancer and cancer-type specific hits are available under [supplementary material](https://www.biorxiv.org/content/10.1101/810374v1.supplementary-material).
 
 ### Contributions
-[Sumana Srivatsa](sumana.srivatsa@bsse.ethz.ch) <br/>
-[Hesam Montazeri](hesam.montazeri@gmail.com)
+[Sumana Srivatsa](mailto:sumana.srivatsa@bsse.ethz.ch) <br/>
+[Hesam Montazeri](mailto:hesam.montazeri@gmail.com)
 
 ### Contact
 
