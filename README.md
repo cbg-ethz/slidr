@@ -52,5 +52,5 @@ The manuscript is available on [bioRxiv](https://www.biorxiv.org/content/10.1101
 ### Contact
 
 If you have any questions, please contact <br/>
-[Sumana Srivatsa](Sumana Srivatsa:sumana.srivatsa@bsse.ethz.ch)
+[Sumana Srivatsa](mailto:sumana.srivatsa@bsse.ethz.ch)
   
