@@ -42,12 +42,15 @@ hits <- hits %>%
 
 ```
 
+### Manuscript
+The manuscript is available on bioRxiv(https://www.biorxiv.org/content/10.1101/810374v1.full). The supplementary files and all the pan-cancer and cancer-type specific hits are available under supplementary material (https://www.biorxiv.org/content/10.1101/810374v1.supplementary-material).
+
 ### Contributions
-[Sumana Srivatsa](sumana.srivatsa@bsse.ethz.ch) <br/>
-[Hesam Montazeri](hesam.montazeri@gmail.com)
+[Sumana Srivatsa]([Sumana Srivatsa:sumana.srivatsa@bsse.ethz.ch) <br/>
+[Hesam Montazeri](Hesam Montazeri:hesam.montazeri@gmail.com)
 
 ### Contact
 
 If you have any questions, please contact <br/>
-[Sumana Srivatsa](sumana.srivatsa@bsse.ethz.ch)
+[Sumana Srivatsa](Sumana Srivatsa:sumana.srivatsa@bsse.ethz.ch)
   
