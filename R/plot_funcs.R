@@ -104,7 +104,7 @@ plotSLBoxplot <- function(canc_data, hits_df, path_results, WT_pval_thresh = 0.1
            ylab(paste(hits_df$sl_partner_gene[j],"Viability score")) +
            xlab(hits_df$driver[j])+
            theme_bw()+
-           ylim(-4,1.5) +
+           ylim(-4, 2) +
            theme(panel.grid.major= element_blank(),
               panel.grid.minor = element_blank(),
               axis.ticks.x = element_line(size = 0.5,color="#525252"),
