@@ -19,7 +19,7 @@ install.packages("devtools")
 library(devtools) 
 install_github("cbg-ethz/slidr")
 ```
-To run SLIdR, specify a path to store the results and use the `identifySLHits` function. An example dataset for liver cancer is available in the package under `LiverData`. The resulting variable `hits` is a dataframe of all the SL pairs in liver cancer as reported in the paper. 
+To run SLIdR, specify a path to store the results and use the `identifySLHits` function. An example dataset for liver cancer is available in the package under `LiverData`. 
 
 ```
 library(slidr)
@@ -41,6 +41,9 @@ hits <- hits %>%
         dplyr::filter(WT_pvalue >= thresh)
 
 ```
+The resulting variable `hits` is a dataframe of all the SL pairs in liver cancer as reported in the paper. SLIdR creates two folders in the specified directory:
+\bullet Hit_List including .txt file with all the hits before filtering by `WT_pval_thresh` value
+\bullet Plots Boxplots of all the significant SL pairs after filtering by `WT_pval_thresh` value
 
 ### Manuscript
 The manuscript is available on [bioRxiv](https://www.biorxiv.org/content/10.1101/810374v1.full). The supplementary files and all the pan-cancer and cancer-type specific hits are available under [supplementary material](https://www.biorxiv.org/content/10.1101/810374v1.supplementary-material).
