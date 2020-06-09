@@ -137,3 +137,5 @@ getF1 <- function(hits, site){
 
 f1scores_df <- rbind.data.frame(mapply(getF1, slidr_hits, sites),
                                 mapply(getF1, fpr_hits, sites))
+
+colnames(f1scores_df) <- sites
