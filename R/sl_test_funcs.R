@@ -190,7 +190,7 @@ getPval <- function(canc_data, driver_gene, sl_partner_gene){
 #' for each type of cancer
 #'
 #' Test based on Wilcoxon test to identify synthetic lethal (SL) partners
-#' in the mutated samples.
+#' using viabilities.
 #'
 #' @import tidyr
 #' @param canc_data Processed data object for a given cancer type
@@ -247,3 +247,67 @@ WilcoxSLHits <- function(canc_data){
 
     return(results)
 }
+
+
+#' Retrieve list of mutation-specific synthetic lethal partners based on t test
+#' for each type of cancer
+#'
+#' Test based on t test to identify synthetic lethal (SL) partners
+#' using viabilities.
+#'
+#' @import tidyr
+#' @param canc_data Processed data object for a given cancer type
+#' @return a dataframe of driver gene with its corresponding SL partner, the p-value in WT samples,
+#' p-value in mutated samples, and the corresponding value after scaling.
+#' @export
+
+ttestSLHits <- function(canc_data){
+
+  viabilities <- canc_data$viabilities
+  mutations   <- canc_data$mutations
+  n_tests     <- nrow(viabilities) * nrow(mutations)
+
+  # Creating an output dataframe
+  results     <- data.frame(driver=character(),
+                            sl_partner=character(),
+                            WT_pvalue=double(),
+                            mut_pvalue=double(),
+                            sc_pvalue=double(),
+                            stringsAsFactors=FALSE)
+
+  for(driver_gene in rownames(mutations)){
+    # Choosing WT cell lines and mutated cell lines
+    WT_celllines  <- colnames(mutations)[which(mutations[driver_gene,] == 0)]
+    mut_celllines <- colnames(mutations)[which(mutations[driver_gene,] == 1)]
+
+    for(sl_partner_gene in rownames(viabilities)){
+      # Get the viabilities of the mutated and WT cell-lines for the sl_parner_genes
+      WT_viabilities  <- as.numeric(as.character(viabilities[sl_partner_gene,WT_celllines]))
+      mut_viabilities <- as.numeric(as.character(viabilities[sl_partner_gene,mut_celllines]))
+
+      # Perform tests and get the p-values
+      WT_pvalue  <- t.test(WT_viabilities, mu = 0, alternative = "two.sided")$p.value
+      mut_pvalue <- t.test(mut_viabilities, mu = 0, alternative = "less")$p.value
+      sc_pvalue  <- mut_pvalue * n_tests # Scaling p-value to check if it's less than average FP
+
+      results         <- rbind.data.frame(results,
+                                          cbind(driver_gene,
+                                                sl_partner_gene,
+                                                WT_pvalue,
+                                                mut_pvalue,
+                                                sc_pvalue))
+
+    }
+  }
+
+  cat("Finished performing all tests successfully!\n")
+  results$WT_pvalue       <- as.numeric(as.character(results$WT_pvalue))
+  results$mut_pvalue      <- as.numeric(as.character(results$mut_pvalue))
+  results$sc_pvalue      <- as.numeric(as.character(results$sc_pvalue))
+  results$driver_gene     <- as.character(results$driver_gene)
+  results$sl_partner_gene <- as.character(results$sl_partner_gene)
+  results                 <- results[order(results$mut_pvalue),]
+
+  return(results)
+}
+

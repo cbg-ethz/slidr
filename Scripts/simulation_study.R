@@ -91,24 +91,35 @@ Wilcox_hits  <- lapply(sim_data,
 
 names(Wilcox_hits) <- sites
 
-save.image("~/Downloads/Slidr_Results_new/SimulationStudy/Wilcox_Slidr_comp.Rdata")
+# save.image("~/Downloads/Slidr_Results_new/SimulationStudy/Wilcox_Slidr_comp.Rdata")
 
 
 # Filtering those that are more than FP_threshold
-fpr_hits   <- lapply(Wilcox_hits, function(x){ x %>%
+fpr_wilcox   <- lapply(Wilcox_hits, function(x){ x %>%
                                   dplyr::filter(sc_pvalue < fp_thresh*50 & WT_pvalue >= 0.1)})
 
 # Filtering based on FDR
-fdr_hits   <- Wilcox_hits
+fdr_wilcox   <- Wilcox_hits
 
 # Compute FDR
 for(site in sites){
-  fdr_hits[[site]]$fdr <- p.adjust(fdr_hits[[site]]$mut_pvalue, method = "fdr")
+  fdr_wilcox[[site]]$fdr <- p.adjust(fdr_wilcox[[site]]$mut_pvalue, method = "fdr")
 }
 
-fdr_hits <- lapply(fdr_hits, function(x){ x %>%
+fdr_wilcox <- lapply(fdr_wilcox, function(x){ x %>%
                              dplyr::filter(fdr < 0.2 & WT_pvalue >= 0.1)})
 
+# Run t-test
+ttest_hits  <- lapply(sim_data,
+                       function(x){slidr::ttestSLHits(canc_data = x$data)})
+
+names(ttest_hits) <- sites
+
+# Filtering those that are more than FP_threshold
+fpr_ttest   <- lapply(ttest_hits, function(x){ x %>%
+                      dplyr::filter(sc_pvalue < fp_thresh*50 & WT_pvalue >= 0.1)})
+
+save.image("~/Downloads/Slidr_Results_new/SimulationStudy/Simulation_comparisons.Rdata")
 
 #####################
 #   EVALUATION      #
@@ -136,6 +147,7 @@ getF1 <- function(hits, site){
 }
 
 f1scores_df <- rbind.data.frame(mapply(getF1, slidr_hits, sites),
-                                mapply(getF1, fpr_hits, sites))
+                                mapply(getF1, fpr_wilcox, sites),
+                                mapply(getF1, fpr_ttest, sites))
 
 colnames(f1scores_df) <- sites
