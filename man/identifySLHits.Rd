@@ -4,8 +4,12 @@
 \alias{identifySLHits}
 \title{Retrieve list of mutation-specific synthetic lethal partners for each type of cancer}
 \usage{
-identifySLHits(canc_data, fp_thresh = 1, path_results = NULL,
-  WT_pval_thresh = 0.1)
+identifySLHits(
+  canc_data,
+  fp_thresh = 1,
+  path_results = NULL,
+  WT_pval_thresh = 0.1
+)
 }
 \arguments{
 \item{canc_data}{Processed data object for a given cancer type}
