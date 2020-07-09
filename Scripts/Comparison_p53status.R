@@ -1,4 +1,5 @@
-# Comparing TP53 with and without stratification
+# Script to compare TP53 hits in pancancer analysis after filtering out
+# cell-lines based on TP53 status using BayesDel score.
 
 library(slidr)
 library(dplyr)
