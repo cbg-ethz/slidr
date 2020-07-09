@@ -87,8 +87,8 @@ plotSLBoxplot <- function(canc_data, hits_df, path_results, WT_pval_thresh = 0.1
       colnames(temp_data) <- c("mut_status","viabilities","mut_type","CN_type")
 
       # Using subset of the colours for the boxplot based on the annotation labels
-      subset_CNA_colors <- CNA_colors[levels(temp_data$CN_type)]
-      subset_colors     <- mut_colors[levels(temp_data$mut_type)]
+      subset_CNA_colors <- CNA_colors[levels(factor(temp_data$CN_type))]
+      subset_colors     <- mut_colors[levels(factor(temp_data$mut_type))]
 
       p <- ggplot(temp_data,aes(factor(mut_status),viabilities)) +
            geom_boxplot(fill = "white", color = "grey30",
