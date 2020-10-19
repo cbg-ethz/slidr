@@ -10,7 +10,7 @@ pc_hits  <- read.delim2("~/Downloads/Slidr_Results_new/PanCan8pc/Hit_List/SL_hit
 # Filter out self-dependent hits
 pc_hits <- dplyr::filter(pc_hits, driver_gene != sl_partner_gene)
 # Load the primary drug screens data
-drugs_df <- read.csv("~/Downloads/primary-screen-replicate-collapsed-treatment-info.csv",
+drugs_df <- read.csv("~/Downloads/Slidr_Results_new/DepMap/primary-screen-replicate-collapsed-treatment-info.csv",
                      stringsAsFactors = FALSE, header = TRUE, check.names = FALSE)
 drug_screen <- read.csv("~/Downloads/Slidr_Results_new/DepMap/primary-screen-replicate-collapsed-logfold-change.csv",
                         header = TRUE, stringsAsFactors = FALSE, check.names = FALSE)
