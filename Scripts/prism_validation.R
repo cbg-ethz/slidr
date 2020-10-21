@@ -1,14 +1,17 @@
 library(dplyr)
 
+########### Pan-cancer data ###############
 # Load pan cancer object
 load("~/Downloads/Slidr_Results_new/PanCan8pc/pancan.Rdata")
 rm(list=setdiff(ls(), c("all_data", "hits", "pc_data")))
 
 # Load hits
 pc_hits  <- read.delim2("~/Downloads/Slidr_Results_new/PanCan8pc/Hit_List/SL_hits_pan_cancer.txt",
-                       stringsAsFactors = FALSE, header = TRUE)
+                        stringsAsFactors = FALSE, header = TRUE)
 # Filter out self-dependent hits
 pc_hits <- dplyr::filter(pc_hits, driver_gene != sl_partner_gene)
+
+########### Prism screen data ###############
 # Load the primary drug screens data
 drugs_df <- read.csv("~/Downloads/Slidr_Results_new/DepMap/primary-screen-replicate-collapsed-treatment-info.csv",
                      stringsAsFactors = FALSE, header = TRUE, check.names = FALSE)
@@ -29,41 +32,58 @@ rownames(drug_screen) <- tolower(drug_screen$CCLE_Name)
 # fewer columns selected for downstream
 drugs_red <- drugs_df %>%dplyr::select(column_name, broad_id, name, target)
 
-# retrieving the subset of drugs for the SL partner genes
-subset_drugs <- do.call(rbind.data.frame,
-                        sapply(unique(pc_hits$sl_partner_gene),
-                                     function(x){drugs_red[which(grepl(x, drugs_red$target)),]}, simplify = FALSE))
+########### Validation on prism ###############
 
-subset_drugs$sl_partner_gene <- sapply(row.names(subset_drugs), function(x){strsplit(x,"[.]")[[1]][1]})
+# Function to test and validate drug targets for the predicted SL pairs on prism data
+getSigDrugs <- function(canc_data, pred_hits){
+  # retrieving the subset of drugs for the SL partner genes
+  subset_drugs <- do.call(rbind.data.frame,
+                          sapply(unique(pred_hits$sl_partner_gene),
+                                 function(x){drugs_red[which(grepl(x, drugs_red$target)),]}, simplify = FALSE))
 
-# initializing variables for the results
-results   <- data.frame()
-mutations <- pc_data$mutations
+  subset_drugs$sl_partner_gene <- sapply(row.names(subset_drugs), function(x){strsplit(x,"[.]")[[1]][1]})
 
-for(i in 1:nrow(pc_hits)){
-  target_gene <- pc_hits$sl_partner_gene[i]
-  driver_gene <- pc_hits$driver_gene[i]
+  # initializing variables for the results
+  results   <- data.frame()
+  mutations <- canc_data$mutations
 
-  if(target_gene %in% subset_drugs$sl_partner_gene){
-    temp <- dplyr::filter(subset_drugs, target_gene == sl_partner_gene)
+  for(i in 1:nrow(pred_hits)){
+    target_gene <- pred_hits$sl_partner_gene[i]
+    driver_gene <- pred_hits$driver_gene[i]
 
-    # Stratifying based on driver gene mutation status
-    WT_celllines  <- colnames(mutations)[which(mutations[driver_gene,] == 0)]
-    mut_celllines <- colnames(mutations)[which(mutations[driver_gene,] == 1)]
+    if(target_gene %in% subset_drugs$sl_partner_gene){
+      temp <- dplyr::filter(subset_drugs, target_gene == sl_partner_gene)
 
-    # For multiple compounds targeting the same partner gene
-    for(j in 1:nrow(temp)){
-      compound <- temp$column_name[j]
+      # Stratifying based on driver gene mutation status
+      WT_celllines  <- colnames(mutations)[which(mutations[driver_gene,] == 0)]
+      mut_celllines <- colnames(mutations)[which(mutations[driver_gene,] == 1)]
 
-      # viabilities in mutated and WT cell-lines from the drug
-      mut_viability <- drug_screen[mut_celllines,compound]
-      WT_viability  <- drug_screen[WT_celllines,compound]
+      # For multiple compounds targeting the same partner gene
+      for(j in 1:nrow(temp)){
+        compound <- temp$column_name[j]
 
-      # Testing if the viability in mutated cell lines is significantly less than in WT from the drug
-      p_val <- t.test(mut_viability, WT_viability, alternative =  "less")$p.value
+        # viabilities in mutated and WT cell-lines from the drug
+        mut_viability <- drug_screen[mut_celllines,compound]
+        WT_viability  <- drug_screen[WT_celllines,compound]
 
-      results <- rbind.data.frame(results,
-                                  cbind(pc_hits[i,], temp[j,], p_val))
+        # Ensuring that the missing data is less than one third
+        if(sum(is.na(mut_viability)) < length(mut_celllines)/2 && sum(is.na(WT_viability)) < length(WT_celllines)/2){
+          # Testing if the viability in mutated cell lines is significantly less than in WT from the drug
+          p_val <- t.test(mut_viability, WT_viability, alternative =  "less")$p.value
+
+          results <- rbind.data.frame(results,
+                                      cbind(pred_hits[i,], temp[j,], p_val))
+        }
+      }
     }
   }
+  return(list(avail_drugs = subset_drugs,
+              valid_hits = results))
 }
+
+# Validate hits for pancancer data
+pc_valid <- getSigDrugs(pc_data, pc_hits)
+
+# Validate hits for cancer-type specific
+cs_valid <- apply(mapply(getSigDrugs, all_data, hits), 2, as.list)
+
