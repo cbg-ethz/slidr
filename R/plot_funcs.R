@@ -50,6 +50,7 @@ plotSLBoxplot <- function(canc_data, hits_df, path_results, WT_pval_thresh = 0.1
                                     viabilities[hits_df$sl_partner_gene[j],celllines])
       temp_data <- as.data.frame(t(temp_data))
       colnames(temp_data)  <- c("mut_status","viabilities")
+      rownames(temp_data)  <- celllines
       # Mutation status of the cell lines
       temp_data$mut_status <- ifelse(temp_data$mut_status == 0,"WT","Mut")
 
