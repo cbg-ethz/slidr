@@ -68,6 +68,7 @@ rm(list=setdiff(ls(), c("pc_data", "isle_df", "isle_df_new")))
 hits_pancan <- read.delim("./PanCan8pc/Hit_List/SL_hits_pan_cancer.txt",stringsAsFactors = F)
 
 # Subset of gold standard hits overlapping with our list of mutations and perturbed genes
+# NOTE: this subset has multiple duplicate SL pairs mapping to different PMID and cancer.type.tested
 isle_sub <- isle_df_new %>%
               dplyr::filter(gene1 %in% rownames(pc_data$mutations)) %>%
               dplyr::filter(gene2 %in% rownames(pc_data$viabilities))
@@ -106,7 +107,8 @@ common_pairs <- unique(intersect(paste(hits_gs$driver_gene, hits_gs$sl_partner_g
 Overlap   <- length(common_pairs)
 group2    <- nrow(hits_gs) # All pairs with p-val < pval_thresh
 Total     <- nrow(pc_data$viabilities) * nrow(pc_data$mutations)
-group1    <- nrow(isle_sub) # All the true positives
+# All the unique true positives since isle_sub has duplicate pairs in diff cancers
+group1    <- length(unique(paste(pval_df$driver_gene, pval_df$sl_partner_gene, sep = "_")))
 
 phyper(Overlap-1, group2, Total-group2, group1, lower.tail= FALSE)
 
