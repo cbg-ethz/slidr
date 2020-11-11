@@ -99,7 +99,7 @@ hits_gs <- slidr::identifySLHits(canc_data = new_data,
                               WT_pval_thresh = 0,
                               fp_thresh = avg_fp)
 
-save.image("./GoldStandard/ComparisonGS.Rdata")
+#save.image("./GoldStandard/ComparisonGS.Rdata")
 
 # Hyper-geometric test to see the degree of overlap
 common_pairs <- unique(intersect(paste(hits_gs$driver_gene, hits_gs$sl_partner_gene, sep = "_"),

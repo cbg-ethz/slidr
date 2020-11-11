@@ -119,7 +119,7 @@ names(ttest_hits) <- sites
 fpr_ttest   <- lapply(ttest_hits, function(x){ x %>%
                       dplyr::filter(sc_pvalue < fp_thresh*50 & WT_pvalue >= 0.1)})
 
-save.image("~/Downloads/Slidr_Results_new/SimulationStudy/Simulation_comparisons.Rdata")
+#save.image("~/Downloads/Slidr_Results_new/SimulationStudy/Simulation_comparisons.Rdata")
 
 #####################
 #   EVALUATION      #
