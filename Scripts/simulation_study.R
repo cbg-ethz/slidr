@@ -77,13 +77,13 @@ path_results <- "~/Downloads/"
 
 slidr_hits  <- lapply(sim_data,
                function(x){slidr::identifySLHits(canc_data = x$data,
-                                                 fp_thresh = fp_thresh,
+                                                 fp_thresh = Inf,
                                                  path_results = path_results,
                                                  WT_pval_thresh = 0.1)})
 names(slidr_hits) <- sites
 
-slidr_hits        <- lapply(slidr_hits, function(x){ x %>%
-                                                    dplyr::filter(WT_pvalue >= 0.1)})
+filt_slidr_hits   <- lapply(slidr_hits, function(x){ x %>%
+                                        dplyr::filter(sc_pvalue < fp_thresh & WT_pvalue >= 0.1)})
 
 # Run Wilcoxon
 Wilcox_hits  <- lapply(sim_data,
@@ -119,7 +119,7 @@ names(ttest_hits) <- sites
 fpr_ttest   <- lapply(ttest_hits, function(x){ x %>%
                       dplyr::filter(sc_pvalue < fp_thresh*50 & WT_pvalue >= 0.1)})
 
-#save.image("~/Downloads/Slidr_Results_new/SimulationStudy/Simulation_comparisons.Rdata")
+save.image("~/Downloads/Slidr_Results_new/Simulation_comparisons.Rdata")
 
 #####################
 #   EVALUATION      #
@@ -146,7 +146,7 @@ getF1 <- function(hits, site){
   return(f1)
 }
 
-f1scores_df <- rbind.data.frame(mapply(getF1, slidr_hits, sites),
+f1scores_df <- rbind.data.frame(mapply(getF1, filt_slidr_hits, sites),
                                 mapply(getF1, fpr_wilcox, sites),
                                 mapply(getF1, fpr_ttest, sites))
 
