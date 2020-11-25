@@ -106,7 +106,8 @@ write.table(x = res_df,
 
 ########### run cancer type-specific ###############
 # Validate hits for cancer-type specific
-cs_valid <- apply(mapply(getSigDrugs, all_data, hits), 2, as.list)
+cs_hits <- lapply(hits, function(x){ x %>% dplyr::filter(WT_pvalue >= 0.1)})
+cs_valid <- apply(mapply(getSigDrugs, all_data, cs_hits), 2, as.list)
 
 for(tissue in names(cs_valid)){
 
