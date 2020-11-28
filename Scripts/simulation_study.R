@@ -60,6 +60,7 @@ simulateData <- function(site, n_sl){
 }
 
 # Simulate 30 sl for liver and bone
+RNGkind(sample.kind = "Rounding")
 set.seed(56429) # use: RNGkind(sample.kind = "Rounding") if running on R >= 3.6
 n_sl  <- 30
 sites <-  c("liver", "bone", "ovary")
@@ -159,7 +160,7 @@ colnames(f1scores_df) <- sites
 
 library(pROC)
 
-plabs        <- LETTERS[1:3]
+plabs        <- letters[1:3]
 names(plabs) <- sites
 
 pdf("./SimulationStudy/Performance_plots.pdf", width = 10, height = 6)
