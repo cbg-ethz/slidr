@@ -60,7 +60,7 @@ simulateData <- function(site, n_sl){
 }
 
 # Simulate 30 sl for liver and bone
-set.seed(56429)
+set.seed(56429) # use: RNGkind(sample.kind = "Rounding") if running on R >= 3.6
 n_sl  <- 30
 sites <-  c("liver", "bone", "ovary")
 sim_data <- mapply(simulateData, sites, rep(n_sl, 3), SIMPLIFY = FALSE)
@@ -151,3 +151,94 @@ f1scores_df <- rbind.data.frame(mapply(getF1, filt_slidr_hits, sites),
                                 mapply(getF1, fpr_ttest, sites))
 
 colnames(f1scores_df) <- sites
+
+
+##########################################################
+############## Plotting PR curve #########################
+##########################################################
+
+library(pROC)
+
+plabs        <- LETTERS[1:3]
+names(plabs) <- sites
+
+pdf("./SimulationStudy/Performance_plots.pdf", width = 10, height = 6)
+
+layout(matrix(c(1, 3, 5, 2, 4, 6, 7, 7, 7), ncol=3, byrow = TRUE), heights = c(4, 4, 0.8))
+
+par(mar = c(4, 4, 2, 2))
+
+for(site in sites){
+  # Ground truth SL pairs
+  true_pairs <- paste(sim_data[[site]]$true_sl[,1],
+                      sim_data[[site]]$true_sl[,2],
+                      sep = "_")
+  # All possible pairs
+  drivers    <- rownames(sim_data[[site]]$data$mutations)
+  pert_genes <- rownames(sim_data[[site]]$data$viabilities)
+  all_pairs  <- sort(apply(expand.grid(drivers, pert_genes), 1, paste, collapse = "_"))
+
+  # The true outcomes vector
+  n        <- nrow(sim_data[[site]]$data$mutations) * nrow(sim_data[[site]]$data$viabilities)
+  outcomes <- rep(0, n)
+  names(outcomes) <- all_pairs
+  outcomes[which(names(outcomes) %in% true_pairs)] <- 1
+
+  # Constructing the dataframes for each method
+  pred_slidr <- cbind.data.frame(paste(slidr_hits[[site]]$driver_gene,
+                                       slidr_hits[[site]]$sl_partner_gene, sep = '_'),
+                                 slidr_hits[[site]]$sc_pvalue)
+  colnames(pred_slidr) <- c("pairs", "scores")
+
+  pred_wilcox <- cbind.data.frame(paste(Wilcox_hits[[site]]$driver_gene,
+                                        Wilcox_hits[[site]]$sl_partner_gene, sep = '_'),
+                                  Wilcox_hits[[site]]$sc_pvalue)
+  colnames(pred_wilcox) <- c("pairs", "scores")
+
+  pred_ttest <- cbind.data.frame(paste(ttest_hits[[site]]$driver_gene,
+                                       ttest_hits[[site]]$sl_partner_gene, sep = '_'),
+                                 ttest_hits[[site]]$sc_pvalue)
+  colnames(pred_ttest) <- c("pairs", "scores")
+
+  # Sorting so that the pair order in prediction matches ground truth
+  pred_slidr  <- pred_slidr %>% dplyr::arrange(pairs)
+  pred_wilcox <- pred_wilcox %>% dplyr::arrange(pairs)
+  pred_ttest  <- pred_ttest %>% dplyr::arrange(pairs)
+
+  # Generate the roc objects
+  roc_obj_slidr  <- roc(outcomes, pred_slidr$scores, percent = FALSE)
+  roc_obj_wilcox <- roc(outcomes, pred_wilcox$scores, percent = FALSE)
+  roc_obj_ttest <- roc(outcomes, pred_ttest$scores, percent = FALSE)
+
+  # Plotting the roc curves and pr curves
+  plot((1-roc_obj_slidr$specificities), roc_obj_slidr$sensitivities,
+       type = "l", col = "#437BAA", xlab = "1 - Specificity", ylab = "Sensitivity",
+       lwd = 2, cex.lab = 1.2, cex.axis = 1.2, main = toupper(site))
+  lines((1-roc_obj_wilcox$specificities), roc_obj_wilcox$sensitivities,
+        type = "l", col = "#BC3B3B", lwd = 2)
+  lines((1-roc_obj_ttest$specificities), roc_obj_ttest$sensitivities,
+        type = "l", col = "#6FAA2F", lwd = 2)
+  mtext(plabs[site], side = 3, line = 0.6, cex = 0.8, adj = -0.2, col = "black", font = 2)
+  #title(outer = TRUE, adj = 0, main = "A", cex = 1.1, col = "black", font = 2, line=-1)
+
+  plot(precision ~ recall,
+       coords(roc_obj_slidr, "all", ret = c("recall", "precision"), transpose = FALSE),
+       type = "l", col = "#437BAA", lwd = 2, xlab = "Recall", ylab = "Precision",
+       cex.lab = 1.2, cex.axis = 1.2)#, main = toupper(site))
+  lines(precision ~ recall,
+        coords(roc_obj_wilcox, "all", ret = c("recall", "precision"), transpose = FALSE),
+        col = "#BC3B3B", lwd = 2)
+  lines(precision ~ recall,
+        coords(roc_obj_ttest, "all", ret = c("recall", "precision"), transpose = FALSE),
+        col = "#6FAA2F", lwd = 2)
+  abline(h = 0.5 , col = "black", lwd = 2, lty = 2)
+
+}
+
+par(mai=c(0,0,0,0))
+plot.new()
+legend(x = "center", legend=c("SLIdR","t-test", "Wilcoxon test"),
+       col=c("#437BAA", "#6FAA2F", "#BC3B3B"), lwd =  2, cex = 1.2,
+       xpd = TRUE, horiz = TRUE, bty = "n", title="Methods")
+
+dev.off()
