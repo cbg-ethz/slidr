@@ -39,7 +39,14 @@ getCRISPRdata <- function(slidr_obj, min_Nmut = 2){
 
   crispr_so <- slidr_obj
 
-  common_KO        <- intersect(rownames(slidr_obj$viabilities), rownames(proc_data))
+  # Getting all the fusion transcripts and including them
+  idx <- grep(",.*-", rownames(slidr_obj$viabilities))
+  fusion_genes <- rownames(slidr_obj$viabilities)[idx]
+  fusion_genes <- unlist(sapply(fusion_genes, function(x){strsplit(x, ",")[[1]][1]}))
+  # set of KO from drive after retaining only the main gene from fusion transcripts
+  drive_KO     <- unique(c(rownames(slidr_obj$viabilities)[-idx], fusion_genes))
+
+  common_KO        <- intersect(drive_KO, rownames(proc_data))
   common_celllines <- intersect(colnames(slidr_obj$mutations), colnames(proc_data))
 
   # Filtering out drivers with less than a fixed number of mutated cell lines
