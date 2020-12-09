@@ -8,7 +8,7 @@ Depends: R (>= 3.2.3)
 License: GPL-3
 Imports: biclust (>= 2.0.1),
          ggplot2 (>= 2.2.1),
-         rDGIdb (>= 1.6.0),
+         rDGIdb (>= 1.16.0),
          RColorBrewer (>= 1.1-2),
          reshape2 (>= 1.4.3),
          tidyr (>= 0.8.1)
