@@ -28,7 +28,7 @@ getCombPval <- function(crispr_data, rnai_data, crispr_hits, rnai_hits){
                                "alias_partner_gene" = "sl_partner_gene")) %>%
               dplyr::select(driver_gene, sl_partner_gene, alias_partner_gene )
 
-  # Setting the sl_partner_gene for crispr hits
+  # Setting the sl_partner_gene for crispr hits not in drive hits
   na_idx <- which(is.na(union_df$sl_partner_gene))
   union_df$sl_partner_gene[na_idx] <- union_df$alias_partner_gene[na_idx]
 
@@ -45,14 +45,14 @@ getCombPval <- function(crispr_data, rnai_data, crispr_hits, rnai_hits){
 
     driver  <- union_df$driver_gene[i]
     partner <- union_df$sl_partner_gene[i]
-    alias   <- union_df$alias_partner_gene[i] # Since Crispr doesn't have fusion genes
+    alias   <- union_df$alias_partner_gene[i] # Since Crispr doesn't have fusion transcripts
 
     # Getting the crispr KO and mutations
     rnai_KO    <- rownames(rnai_data$viabilities)
     crispr_KO  <- rownames(crispr_data$viabilities)
     crispr_mut <- rownames(crispr_data$mutations)
 
-    # If the partner has only a fusion transcript in the DRIVE data then choose the first best match
+    # If the partner has only fusion transcripts in the DRIVE data then choose the first best match
     if(!partner %in% rnai_KO){
       partner <- rnai_KO[grep(paste0("^",partner), rnai_KO)][1]
     }
@@ -86,6 +86,7 @@ getCombPval <- function(crispr_data, rnai_data, crispr_hits, rnai_hits){
   total_tests <- nrow(rnai_data$viabilities) * nrow(rnai_data$mutations)
   common_res$comb_sc_pval <- common_res$comb_mut_pval * total_tests
 
+  # Sometimes there are no unique hits specific to only DRIVE
   if(nrow(unique_res) > 0){
     colnames(unique_res) <- c("driver_gene", "sl_partner_gene", "drive_WT_pval", "drive_mut_pval")
     robust_res           <- dplyr::bind_rows(common_res, unique_res)
@@ -103,7 +104,38 @@ pc_robust <- getCombPval(crispr_data = crispr_pc_data,
                          crispr_hits = hits_crispr_pc,
                          rnai_hits = pc_hits)
 
-cs_robust <- getCombPval(crispr_data = crispr_cs_data[[x]],
-                         rnai_data = all_data[[x]],
-                         crispr_hits = hits_crispr_cs[[x]],
-                         rnai_hits = hits[[x]])
+temp <- pc_robust$robust_hits %>%
+          dplyr::filter(comb_sc_pval < 1)
+
+write.table(temp,
+            file = "./DepMap/Crispr/RobustHits/robust_hits_pancancer.txt",
+            sep = "\t",
+            quote = FALSE,
+            row.names = FALSE,
+            col.names = TRUE)
+
+cs_robust <- lapply(names(crispr_cs_data), function(x){
+                                            getCombPval(crispr_data = crispr_cs_data[[x]],
+                                                        rnai_data = all_data[[x]],
+                                                        crispr_hits = hits_crispr_cs[[x]],
+                                                        rnai_hits = hits[[x]])})
+
+names(cs_robust) <- names(crispr_cs_data)
+
+# writing the robust hits after filtering based on thresholds
+for(i in names(cs_robust)){
+
+  temp <- cs_robust[[i]]$robust_hits %>%
+            dplyr::filter(comb_sc_pval < 1) %>%
+            dplyr::filter(drive_WT_pval >= 0.1 | crispr_WT_pval >= 0.1) %>%
+            dplyr::arrange(comb_sc_pval)
+
+  write.table(temp,
+              file = paste0("./DepMap/Crispr/RobustHits/robust_hits_",i,".txt"),
+              sep = "\t",
+              quote = FALSE,
+              row.names = FALSE,
+              col.names = TRUE)
+}
+
+save.image("./DepMap/Crispr/RobustHits/FishersRobustHits.Rdata")
