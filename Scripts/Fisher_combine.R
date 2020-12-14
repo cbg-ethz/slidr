@@ -18,7 +18,7 @@ getCombPval <- function(crispr_data, rnai_data, crispr_hits, rnai_hits){
   temp_genes[idx] <- unlist(sapply(temp_genes[idx], function(x){strsplit(x, ",")[[1]][1]}))
   rnai_hits$alias_partner_gene <- temp_genes
 
-  # Common pairs between both
+  # Common pairs between both without filtering based on WT p-value >= 0.1
   common_hits <- intersect(paste(crispr_hits$driver_gene, crispr_hits$sl_partner_gene, sep = "_"),
                            paste(rnai_hits$driver_gene, rnai_hits$alias_partner_gene, sep = "_"))
 
