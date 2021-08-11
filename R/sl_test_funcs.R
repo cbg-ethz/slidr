@@ -114,14 +114,15 @@ identifySLHits <- function(canc_data, fp_thresh = 1, path_results = NULL, WT_pva
   results$driver_gene     <- as.character(results$driver_gene)
   results$sl_partner_gene <- as.character(results$sl_partner_gene)
   results                 <- results[order(results$mut_pvalue),]
-  drugs_df                <- detailedResults(queryDGIdb(unique(results$sl_partner_gene)))
-  if(nrow(drugs_df) > 0){
-    drugs_df                <- drugs_df %>%
-                                dplyr::group_by(Gene) %>%
-                                dplyr::summarise(Drugs  = paste(Drug, collapse = ","))
-    drugs_df$Gene           <- as.character(drugs_df$Gene)
-    results                 <- dplyr::left_join(results, drugs_df, by = c("sl_partner_gene" = "Gene"))
-  }
+  # RDGIdB changed and has several issues. So we don't run this part
+  # drugs_df                <- detailedResults(queryDGIdb(unique(results$sl_partner_gene)))
+  # if(nrow(drugs_df) > 0){
+  #   drugs_df                <- drugs_df %>%
+  #                               dplyr::group_by(Gene) %>%
+  #                               dplyr::summarise(Drugs  = paste(Drug, collapse = ","))
+  #   drugs_df$Gene           <- as.character(drugs_df$Gene)
+  #   results                 <- dplyr::left_join(results, drugs_df, by = c("sl_partner_gene" = "Gene"))
+  # }
 
   write.table(results,
               file = paste(output_folder, "SL_hits_", canc_data$primary_site, ".txt", sep = ""),
