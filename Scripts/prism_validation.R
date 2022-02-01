@@ -41,7 +41,7 @@ getSigDrugs <- function(canc_data, pred_hits){
   # retrieving the subset of drugs for the SL partner genes
   subset_drugs <- do.call(rbind.data.frame,
                           sapply(unique(pred_hits$sl_partner_gene),
-                                 function(x){drugs_red[which(grepl(x, drugs_red$target)),]}, simplify = FALSE))
+                                 function(x){drugs_red[which(grepl(paste0('\\b',x,'\\b'), drugs_red$target)),]}, simplify = FALSE))
 
   subset_drugs$sl_target_gene <- sapply(row.names(subset_drugs), function(x){strsplit(x,"[.]")[[1]][1]})
 
