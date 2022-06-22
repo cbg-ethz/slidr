@@ -4,7 +4,7 @@ library(dplyr)
 library(tidyr)
 library(parallel)
 
-load("~/Downloads/Slidr_Results_new/DepMap/Prism/29Nov2021/prism_validation.Rdata")
+load("~/Downloads/Slidr_Results_new/DepMap/Prism/Revision2021/29Nov2021/prism_validation.Rdata")
 
 valid_ls <- cs_valid
 valid_ls$pancancer <- pc_valid
@@ -39,7 +39,7 @@ for(tissue in names(valid_ls)){
 set.seed(83926) #85976
 
 # Function to compare the fraction of significant hits from random controls
-compare_control <- function(canc_data, cancer_type, seed_val , nruns = 10000){
+compare_control <- function(canc_data, cancer_type, seed_val , nruns = 1000){
 
   set.seed(seed_val)
 
@@ -119,14 +119,16 @@ compare_control <- function(canc_data, cancer_type, seed_val , nruns = 10000){
     temp_n_tests <- results %>% nrow()
     frac_hits_ctrl[i] <- temp_n_hits/temp_n_tests
 
-    # Empirical probability of finding more hits than observed at random
-    emp_pval <- mean(frac_hits_ctrl >= (n_sig_hits/n_tests))
-
-    return(list(frac_hits_ctrl = frac_hits_ctrl,
-                n_tests = n_tests,
-                n_sig_hits = n_sig_hits,
-                emp_pval = emp_pval))
   }
+
+  # Empirical probability of finding more hits than observed at random
+  emp_pval <- mean(frac_hits_ctrl >= (n_sig_hits/n_tests))
+
+  return(list(frac_hits_ctrl = frac_hits_ctrl,
+              n_tests = n_tests,
+              n_sig_hits = n_sig_hits,
+              emp_pval = emp_pval))
+
 }
 
 # Cancer types with more than 0 significant hits in prism

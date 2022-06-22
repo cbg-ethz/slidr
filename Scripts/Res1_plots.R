@@ -44,7 +44,7 @@ a <- ggplot(barplot_df, aes(fill = canc_type, x = reorder(driver_gene,-tot_sampl
         axis.text.y=element_text(angle=0, vjust=0.5, hjust=1,size=11.5,colour="#525252"),
         axis.text.x=element_text(angle=90, vjust=0.5, hjust=1,size=11.5,colour="#525252"),
         axis.title.x=element_text(angle=0,size=15,face="bold",vjust=0,colour="#525252"),
-        axis.title.y=element_text(angle=90, size=15,face="bold",vjust=-15,colour="#525252"),
+        axis.title.y=element_text(angle=90, size=15,face="bold",vjust=5,colour="#525252"),
         # strip.text.x = element_text(size = 10, colour = "#525252", face = "bold"),
         # strip.background = element_blank(),
         legend.position = "bottom",
@@ -80,7 +80,7 @@ b <- ggplot(bp_summary_df, aes(x=driver_gene, y=sl_partner_gene, size = -log10(m
         axis.text.y=element_text(angle=0, vjust=0.5, hjust=1,size=11.5,colour="#525252"),
         axis.text.x=element_text(angle=90, vjust=0.5, hjust=1,size=11.5,colour="#525252"),
         axis.title.x=element_text(angle=0,size=15,face="bold",vjust=0,colour="#525252"),
-        axis.title.y=element_text(angle=90, size=15,face="bold",vjust=-12,colour="#525252"),
+        axis.title.y=element_text(angle=90, size=15,face="bold",vjust=3,colour="#525252"),
         strip.text.x = element_text(size = 9, colour = "#525252", face = "bold"),
         strip.background = element_blank(),
         legend.position = "right",
@@ -98,7 +98,7 @@ summary_df <- summary_df %>% dplyr::filter(driver_gene != sl_partner_gene)
 d <- ggplot(summary_df, aes(x = sl_partner_gene, y = canc_type)) +
   geom_tile(aes(fill = -log10(as.numeric(as.character(mut_pvalue))))) +
   facet_grid(.~ factor(driver_gene), scales = "free_x", space = "free_x") +
-  scale_fill_viridis(option="D", begin = 0, end = 1, alpha = 0.9) +
+  scale_fill_viridis_c(option="D", begin = 0, end = 1, alpha = 0.9, limits = c(0, 16), breaks = seq(0, 16, by = 2)) +
   theme_bw() +
   ylab("Primary sites") +
   xlab("SL partner genes") +
@@ -116,8 +116,8 @@ d <- ggplot(summary_df, aes(x = sl_partner_gene, y = canc_type)) +
         strip.background = element_blank(),
         legend.position = "bottom",
         legend.title = element_text(vjust = 1, size=13,colour="#525252"),
-        legend.text = element_text(size=11.5,colour="#525252"),
-        legend.key.size = unit(0.7, "cm"))+
+        legend.text = element_text(size=10.25,colour="#525252"),
+        legend.key.size = unit(0.75, "cm"))+
   scale_y_discrete(labels = c("Autonomic ganglia", "Bone", "Breast",
                               "CNS", "Endometrium","Blood",
                               "Kidney", "Large intestine", "Liver",
