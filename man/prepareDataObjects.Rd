@@ -4,9 +4,21 @@
 \alias{prepareDataObjects}
 \title{Prepare the data object required for downstream analysis}
 \usage{
-prepareDataObjects(data, x, fdr = 0.05, min_Nmut = 2, all_cancers_mut_df,
-  CN_df, gistic = FALSE, top_drivers = NULL, CN_Thr = 2,
-  minNrcelllines = 5, celllines, meta_data, essential_genes = NULL)
+prepareDataObjects(
+  data,
+  x,
+  fdr = 0.05,
+  min_Nmut = 2,
+  all_cancers_mut_df,
+  CN_df,
+  gistic = FALSE,
+  top_drivers = NULL,
+  CN_Thr = 2,
+  minNrcelllines = 5,
+  celllines,
+  meta_data,
+  essential_genes = NULL
+)
 }
 \arguments{
 \item{data}{input data frame of cell line viabilities for different gene knockdowns}
