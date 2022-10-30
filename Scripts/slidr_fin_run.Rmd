@@ -1,5 +1,5 @@
 ---
-  title: "Running slidr"
+title: "Running slidr"
 author: "Sumana Srivatsa"
 date: "8/2/2018"
 output: pdf_document
@@ -16,6 +16,7 @@ Loading all the relevant data and creating the data object with the mutation and
 library(slidr)
 library(dplyr)
 library(reshape2)
+library(biclust)
 
 # Set path to all data
 base_folder = "~/GitHub/CrispR/Data/"

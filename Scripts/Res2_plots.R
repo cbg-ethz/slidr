@@ -38,8 +38,19 @@ mut_freq_df <- mut_freq_df %>%
                 dplyr::group_by(driver_gene) %>%
                 dplyr::filter(n() > 1)
 
+# To maintain orders within each cancer type
+mut_freq_df$canc_type <- factor(mut_freq_df$canc_type,
+                                levels = unique(mut_freq_df$canc_type))
+
+mut_freq_df <- mut_freq_df %>%
+                  group_by(canc_type) %>%
+                  arrange(driver_gene, .by_group = TRUE)
+
+mut_freq_df$driver_gene <- factor(mut_freq_df$driver_gene,
+                                  levels = unique(mut_freq_df$driver_gene))
+
 # Plotting driver frequencies across cancer types
-a <- ggplot(mut_freq_df, aes(x = driver_gene, y = factor(canc_type)))+
+a <- ggplot(mut_freq_df, aes(x = driver_gene, y = canc_type))+
       geom_tile(aes(fill = as.numeric(as.character(freq))), color = "white") +
       scale_fill_viridis(option="A", begin = 0, end = 0.95, alpha = 0.9, direction = -1) +
       theme_bw() +
