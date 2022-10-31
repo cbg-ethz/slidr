@@ -1,6 +1,8 @@
 # Script to compare to CRISPR literature gold-standard for the 2021 revisions.
 # Note: Need to run Comparison_goldstd.R before running this.
 
+library(tidyverse)
+
 load("~/Downloads/Slidr_Results_new/GoldStandard/ComparisonGS.Rdata")
 # Compiled CRISPR literature gold-standard
 lit_goldstd <- read.delim("~/Downloads/Slidr_Results_new/GoldStandard/lit_goldstd.txt",
