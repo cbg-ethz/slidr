@@ -1,4 +1,5 @@
 ![Build Status](https://travis-ci.org/cbg-ethz/slidr.svg?branch=master)
+[![DOI](https://zenodo.org/badge/137060992.svg)](https://zenodo.org/badge/latestdoi/137060992)
 
 # slidr <img src="https://github.com/cbg-ethz/slidr/blob/master/slidr.png" align="right" width="155 px"/>
 
