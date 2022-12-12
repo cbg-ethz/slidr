@@ -230,7 +230,7 @@ prepareDataObjects <- function(data, x, fdr = 0.05, min_Nmut = 2, all_cancers_mu
   }else{
 
     # Getting the top driver genes from TCGA maf files
-    top_drivers <- NULL
+    # top_drivers <- NULL
     if(is.null(top_drivers)){
       for(i in unlist(strsplit(subset(meta_data, Primary_site == x, Driver_gene_file, drop = TRUE),"[;]"))){
         # Loading driver mutation list from FireBrowse
