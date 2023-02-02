@@ -46,9 +46,6 @@ The resulting variable `hits` is a dataframe of all the SL pairs in liver cancer
 * `Hit_List` - including .txt file with all the hits before filtering by `WT_pval_thresh` value
 * `Plots` - Boxplots of all the significant SL pairs after filtering by `WT_pval_thresh` value
 
-### Manuscript
-The manuscript is available on [bioRxiv](https://www.biorxiv.org/content/10.1101/810374v1.full). The supplementary files and all the pan-cancer and cancer-type specific hits are available under [supplementary material](https://www.biorxiv.org/content/10.1101/810374v1.supplementary-material).
-
 ### Contributions
 [Sumana Srivatsa](https://bsse.ethz.ch/department/people/detail-person.MjAyOTQw.TGlzdC8yNjY5LDEwNjI4NTM0MDk=.html) <br/>
 [Hesam Montazeri](http://lcbb.ut.ac.ir/)
